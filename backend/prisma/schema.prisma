@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & Auth ────────────────────────────────────────────────────────────
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  password     String
+  role         Role           @default(viewer)
+  active       Boolean        @default(true)
+  refreshTokens RefreshToken[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  admin
+  editor
+  viewer
+}
+
+// ─── App Settings ─────────────────────────────────────────────────────────────
+
+model AppSettings {
+  id            String  @id @default("singleton")
+  appName       String  @default("Personal ERP")
+  logoUrl       String?
+  defaultTheme  String  @default("dark")
+  primaryColor  String  @default("#6366f1")
+  language      String  @default("fr")
+  modules       Json    @default("{\"dashboard\":true,\"wiki\":true,\"portfolio\":true}")
+}
+
+// ─── Dashboards ───────────────────────────────────────────────────────────────
+
+model Dashboard {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?
+  layout      Json      @default("[]")
+  roles       Json      @default("[\"admin\"]")
+  widgets     Widget[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Widget {
+  id          String    @id @default(cuid())
+  dashboardId String
+  type        WidgetType
+  title       String
+  config      Json      @default("{}")
+  position    Json      @default("{}")
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum WidgetType {
+  bar
+  line
+  pie
+  kpi
+  table
+  note
+}
+
+// ─── Wiki ─────────────────────────────────────────────────────────────────────
+
+model WikiPage {
+  id          String            @id @default(cuid())
+  title       String
+  slug        String            @unique
+  content     String            @default("") @db.LongText
+  excerpt     String?           @db.Text
+  parentId    String?
+  parent      WikiPage?         @relation("WikiChildren", fields: [parentId], references: [id])
+  children    WikiPage[]        @relation("WikiChildren")
+  tags        Json              @default("[]")
+  visibility  Visibility        @default(admin)
+  order       Int               @default(0)
+  versions    WikiPageVersion[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model WikiPageVersion {
+  id        String   @id @default(cuid())
+  pageId    String
+  content   String   @db.LongText
+  title     String
+  savedBy   String?
+  page      WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  savedAt   DateTime @default(now())
+}
+
+// ─── Portfolio ────────────────────────────────────────────────────────────────
+
+model Portfolio {
+  id          String           @id @default(cuid())
+  title       String
+  slug        String           @unique
+  description String?
+  visibility  Visibility       @default(admin)
+  entries     PortfolioEntry[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model PortfolioEntry {
+  id          String    @id @default(cuid())
+  portfolioId String
+  title       String
+  shortDesc   String
+  longDesc    String?   @db.Text
+  tags        Json      @default("[]")
+  images      Json      @default("[]")
+  links       Json      @default("[]")
+  status      EntryStatus @default(termine)
+  date        DateTime?
+  order       Int       @default(0)
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum EntryStatus {
+  en_cours
+  termine
+  archive
+}
+
+enum Visibility {
+  admin
+  editor
+  viewer
+}
