@@ -1,9 +1,12 @@
 FROM node:20-alpine
 WORKDIR /app
 
+# OpenSSL requis par le query engine Prisma sur Alpine
+RUN apk add --no-cache openssl
+
 # Installer toutes les dépendances (prisma CLI inclus)
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Générer le client Prisma (a besoin du schema)
 COPY prisma ./prisma

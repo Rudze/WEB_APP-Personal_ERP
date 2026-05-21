@@ -56,6 +56,24 @@ docker compose up -d --build
 docker compose logs -f backend
 ```
 
+> **⚠️ Mot de passe avec caractères spéciaux dans `DATABASE_URL`**
+>
+> Le fichier `.env` utilise `#` comme caractère de commentaire — tout ce qui suit un `#` est ignoré.
+> Si votre mot de passe contient `&`, `#`, `*`, `@`, `:`, etc., encodez-les en `%XX` dans l'URL :
+>
+> | Caractère | Encodé |
+> |-----------|--------|
+> | `&` | `%26` |
+> | `#` | `%23` |
+> | `*` | `%2A` |
+> | `@` | `%40` |
+>
+> Commande pour encoder votre mot de passe :
+> ```bash
+> python3 -c "import urllib.parse; print(urllib.parse.quote('MON_MDP', safe=''))"
+> ```
+> Exemple : `p@ss#1` → `DATABASE_URL=mysql://erp:p%40ss%231@host:3306/erp_perso`
+
 **Premier démarrage** : les migrations Prisma et le seed (`admin@erp.local / Admin1234!`) s'exécutent automatiquement.
 
 Accès :
