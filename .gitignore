@@ -1,0 +1,11 @@
+node_modules/
+.env
+dist/
+build/
+.DS_Store
+*.log
+.pnp
+.pnp.js
+# Garder .env.docker commité (pas de secrets dedans par défaut)
+# mais ignorer le .env effectif à la racine
+/.env

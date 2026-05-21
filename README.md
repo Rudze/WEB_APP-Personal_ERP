@@ -39,32 +39,78 @@ Pour basculer sur **PostgreSQL** :
 
 ## Installation
 
-### Prerequisites
+### Option A — Docker (recommandé)
+
+> Prérequis : Docker + Docker Compose v2
+
+```bash
+# 1. Copiez et éditez le fichier d'environnement
+cp .env.docker .env
+#    → changez les JWT secrets (obligatoire !)
+#    → ajustez DATABASE_URL si vous utilisez une BDD externe
+
+# 2. Build + démarrage (MySQL intégré + backend + frontend)
+docker compose up -d --build
+
+# 3. Vérifiez les logs
+docker compose logs -f backend
+```
+
+**Premier démarrage** : les migrations Prisma et le seed (`admin@erp.local / Admin1234!`) s'exécutent automatiquement.
+
+Accès :
+- Frontend : http://localhost:5173
+- API : http://localhost:4000/api
+- MySQL : localhost:3306 (si service intégré)
+
+Commandes utiles :
+```bash
+# Voir les logs en temps réel
+docker compose logs -f
+
+# Re-seed (si la DB est déjà initialisée)
+docker compose exec backend node prisma/seed.js
+
+# Ouvrir un shell dans le conteneur backend
+docker compose exec backend sh
+
+# Arrêter
+docker compose down
+
+# Arrêter + supprimer les volumes (réinitialise la BDD)
+docker compose down -v
+```
+
+---
+
+### Option B — Installation manuelle (dev local)
+
+#### Prerequisites
 
 - Node.js 18+
 - MySQL 8.0+ (ou MariaDB 10.5+) accessible à `192.168.1.100:3306`
-- npm or pnpm
+- npm
 
-### Backend
+#### Backend
 
 ```bash
 cd backend
 cp .env.example .env
-# Edit .env with your DB credentials and JWT secrets
+# Éditez .env : DATABASE_URL, JWT secrets
 npm install
 npx prisma migrate dev --name init
-npx prisma db seed      # creates default admin user
-npm run dev
+npx prisma db seed      # crée admin@erp.local / Admin1234!
+npm run dev             # port 4000
 ```
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend
 npm install
 cp .env.example .env
-# Edit VITE_API_URL if needed
-npm run dev
+# Éditez VITE_API_URL si l'API n'est pas sur localhost:4000
+npm run dev             # port 5173
 ```
 
 ### Default admin credentials

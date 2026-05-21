@@ -1,25 +1,38 @@
 version: "3.9"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Copiez .env.docker → .env puis ajustez les valeurs avant de lancer.
+#
+# BDD intégrée (défaut) :
+#   docker compose up -d
+#
+# BDD externe (192.168.1.100) :
+#   Commentez le service mysql, changez DATABASE_URL dans .env
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
-  # ── Base de données MySQL (optionnel — remplacez par votre serveur externe) ──
+
+  # ── MySQL intégré (commentez ce bloc pour utiliser une BDD externe) ─────────
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: erp_perso
       MYSQL_USER: erp
-      MYSQL_PASSWORD: erppassword
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-erppassword}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
+  # ── Backend API ──────────────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -27,22 +40,27 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - FRONTEND_URL=${FRONTEND_URL}
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-mysql://erp:erppassword@mysql:3306/erp_perso}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      PORT: 4000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       mysql:
         condition: service_healthy
     restart: unless-stopped
 
+  # ── Frontend (React buildé + nginx) ─────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL}
+        # /api = chemin relatif → nginx proxie vers le backend
+        VITE_API_URL: ${VITE_API_URL:-/api}
     ports:
       - "5173:80"
     depends_on:
