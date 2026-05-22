@@ -60,7 +60,12 @@ function SmartRoot() {
 function SmartIndex() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return <Navigate to={user ? "/dashboards" : "/portfolio"} replace />;
+  if (user) return <Navigate to="/dashboards" replace />;
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8 text-muted-foreground">
+      <p className="text-lg">Bienvenue — connectez-vous ou parcourez les contenus publics.</p>
+    </div>
+  );
 }
 
 const router = createBrowserRouter([
