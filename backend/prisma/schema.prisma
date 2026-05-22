@@ -160,4 +160,5 @@ enum Visibility {
   admin
   editor
   viewer
+  public
 }
