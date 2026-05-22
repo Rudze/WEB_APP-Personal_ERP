@@ -1,27 +1,67 @@
-# 🗂️ Personal ERP
-
-> Application web personnelle tout-en-un — wiki, portfolio CV, dossier technique, dashboards, et plus.  
-> Déployable en un seul container Docker.
-
-![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=flat-square&logo=node.js&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma)
-![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Claude](https://img.shields.io/badge/90%25%20built%20with-Claude%20AI-D97706?style=flat-square)
+<h2 align="center">
+  Personal ERP
+</h2>
 
 ---
 
-## Modules
+<div align="center">
 
-| Module | Description |
-|--------|-------------|
-| 🔐 **Auth** | JWT (access + refresh tokens), cookies httpOnly, RBAC |
-| ⚙️ **Admin** | Gestion des utilisateurs, paramètres globaux, accès public |
-| 📊 **Dashboards** | Tableaux de bord dynamiques avec widgets configurables |
-| 📖 **Wiki** | Wiki Markdown avec versioning, recherche plein texte, arborescence |
-| 💼 **Portfolio** | Vitrine de projets avec mode CV (profil, compétences, timeline) |
-| 🎓 **CV** | Dossier technique — formations, certifications, compétences par catégorie |
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com) &nbsp;
+[![forthebadge](https://forthebadge.com/images/badges/open-source.svg)](https://forthebadge.com) &nbsp;
+[![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com) &nbsp;
+
+</div>
+
+---
+
+## About the Project
+
+**Personal ERP** est une application web personnelle tout-en-un, conçue pour centraliser wiki, portfolio, CV, dossier technique et dashboards dans une interface unique et épurée.
+
+L'objectif principal est de disposer d'un **espace personnel complet**, accessible depuis n'importe quel navigateur, déployable en **un seul container Docker** sur un serveur local ou distant.
+
+Le projet est conçu avec la **modularité en tête** : chaque module peut être activé, configuré et rendu public ou privé indépendamment.
+
+> 🤖 Ce projet a été développé à **~90% avec [Claude](https://claude.ai) (Anthropic)** — architecture, code, debug et itérations — via [Claude Code](https://claude.ai/code).
+
+---
+
+## Features
+
+* ✅ **Auth sécurisée** — JWT (access + refresh tokens), cookies httpOnly, RBAC (admin / editor / viewer)
+* ✅ **Wiki Markdown** — arborescence, versioning, recherche plein texte, visibilité par page
+* ✅ **Portfolio CV** — vitrine de projets avec mode CV (profil, compétences, timeline par catégorie)
+* ✅ **Dossier technique (CV)** — formations, certifications avec dates, compétences par catégorie avec niveaux
+* ✅ **Dashboards** — tableaux de bord avec widgets configurables
+* ✅ **Accès public sélectif** — chaque contenu peut être rendu accessible aux visiteurs non connectés
+* ✅ **Single container** — frontend (React) servi par Express, pas de nginx séparé
+* ✅ **Admin panel** — gestion des utilisateurs, paramètres globaux, accès public
+
+---
+
+## Architecture
+
+```
+Client (navigateur)
+    │
+    │  HTTP  →  GET /  →  React App (servi par Express)
+    ▼
+Express (Node.js) :4000
+    │
+    ├── /              → React build (SPA fallback)
+    ├── /api/auth      → JWT login / refresh / logout
+    ├── /api/wiki      → Pages wiki (public ou authentifié)
+    ├── /api/portfolio → Portfolios & entrées
+    ├── /api/cv        → Profil CV & formations
+    ├── /api/dashboards → Widgets & layouts
+    └── /api/admin     → Paramètres & utilisateurs
+    │
+    ▼
+Prisma ORM
+    │
+    ▼
+MySQL 8+
+```
 
 ---
 
@@ -38,33 +78,22 @@
 
 ---
 
-## Démarrage rapide
+## Installation
 
-> Prérequis : Docker + Docker Compose v2, MySQL accessible sur le réseau
+### 1 — Cloner le projet
 
 ```bash
-# 1. Cloner le projet
 git clone https://github.com/Rudze/WEB_APP-Personal_ERP.git
 cd WEB_APP-Personal_ERP
-
-# 2. Configurer l'environnement
-cp .env.docker .env
-# → Modifier DATABASE_URL avec votre MySQL
-# → Changer les JWT secrets (obligatoire)
-
-# 3. Lancer
-docker compose up -d --build
-
-# 4. Accéder à l'application
-# http://localhost:5173
 ```
 
-**Identifiants par défaut :** `admin@erp.local` / `Admin1234!`  
-> ⚠️ Changez le mot de passe dès la première connexion.
+### 2 — Configurer l'environnement
 
----
+```bash
+cp .env.docker .env
+```
 
-## Variables d'environnement (`.env`)
+Éditez `.env` :
 
 ```env
 DATABASE_URL="mysql://user:password@host:3306/erp"
@@ -75,13 +104,24 @@ JWT_ACCESS_EXPIRES="15m"
 JWT_REFRESH_EXPIRES="7d"
 
 FRONTEND_URL="http://localhost:5173"
-COOKIE_SECURE="false"   # true uniquement derrière HTTPS
+COOKIE_SECURE="false"
 ```
 
-> **Mot de passe avec caractères spéciaux** : encodez-les dans l'URL (`@` → `%40`, `#` → `%23`).  
+> **Mot de passe avec caractères spéciaux** dans l'URL MySQL : encodez-les (`@` → `%40`, `#` → `%23`).
 > ```bash
 > python3 -c "import urllib.parse; print(urllib.parse.quote('MON_MDP', safe=''))"
 > ```
+
+### 3 — Lancer
+
+```bash
+docker compose up -d --build
+```
+
+L'application est disponible sur **http://localhost:5173**
+
+**Identifiants par défaut :** `admin@erp.local` / `Admin1234!`
+> ⚠️ Changez le mot de passe dès la première connexion.
 
 ---
 
@@ -91,42 +131,32 @@ COOKIE_SECURE="false"   # true uniquement derrière HTTPS
 # Logs en temps réel
 docker compose logs -f
 
-# Relancer le seed
-docker compose exec app node prisma/seed.js
-
 # Shell dans le container
 docker compose exec app sh
 
-# Arrêter + supprimer les volumes (reset BDD)
+# Reset complet (supprime la BDD)
 docker compose down -v
 ```
 
 ---
 
-## Accès public
-
-Les modules Wiki, Portfolio et CV peuvent être rendus accessibles aux visiteurs non connectés.  
-Configurez la visibilité de chaque contenu (Privé / Public) depuis l'interface.
-
----
-
-## Structure du projet
+## Project Structure
 
 ```
 /
-├── Dockerfile            → Build multi-stage (frontend + backend)
+├── Dockerfile                → Build multi-stage (frontend + backend)
 ├── docker-compose.yml
-├── frontend/             → React + Vite + TailwindCSS
+├── frontend/                 → React 18 + Vite + TailwindCSS
 │   └── src/
-│       ├── components/   → UI & layout
-│       ├── pages/        → Wiki, Portfolio, CV, Dashboards…
-│       ├── context/      → Auth, Theme
-│       └── lib/          → API client
-└── backend/              → Node.js + Express
+│       ├── components/       → UI & layout (sidebar, header…)
+│       ├── pages/            → Wiki, Portfolio, CV, Dashboards, Admin
+│       ├── context/          → Auth, Theme
+│       └── lib/              → API client, utilitaires
+└── backend/                  → Node.js + Express
     ├── src/
-    │   ├── controllers/
-    │   ├── middlewares/
-    │   └── routes/
+    │   ├── controllers/      → Logique métier
+    │   ├── middlewares/      → Auth, rôles
+    │   └── routes/           → Routers Express
     └── prisma/
         ├── schema.prisma
         └── seed.js
@@ -134,13 +164,12 @@ Configurez la visibilité de chaque contenu (Privé / Public) depuis l'interface
 
 ---
 
-## À propos
+## Contact
 
-Ce projet a été développé à **~90% avec [Claude](https://claude.ai)** (Anthropic) — conception de l'architecture, écriture du code, debug et itérations — en collaboration directe via [Claude Code](https://claude.ai/code).
+If you have any questions, feel free to reach out at contact@rudydavid.fr
 
 ---
 
-## Contact
+### Show Your Support
 
-📧 rudy@galaxynetwork.fr  
-🐙 [github.com/Rudze](https://github.com/Rudze)
+Give a ⭐ if you like this project!
