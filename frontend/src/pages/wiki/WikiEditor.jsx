@@ -137,8 +137,9 @@ export function WikiEditor() {
           <Select value={form.visibility} onValueChange={(v) => setForm({ ...form, visibility: v })}>
             <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="viewer">Lecteur</SelectItem>
-              <SelectItem value="editor">Éditeur</SelectItem>
+              <SelectItem value="public">Public (visiteurs)</SelectItem>
+              <SelectItem value="viewer">Connectés</SelectItem>
+              <SelectItem value="editor">Éditeurs</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
           </Select>

@@ -16,3 +16,20 @@ export function authenticate(req, _res, next) {
     next(unauthorized());
   }
 }
+
+export function optionalAuthenticate(req, _res, next) {
+  try {
+    const token =
+      req.cookies?.access_token ||
+      req.headers.authorization?.replace("Bearer ", "");
+
+    if (token) {
+      req.user = verifyAccessToken(token);
+    } else {
+      req.user = { role: "public" };
+    }
+  } catch {
+    req.user = { role: "public" };
+  }
+  next();
+}

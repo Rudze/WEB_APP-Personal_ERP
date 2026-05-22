@@ -1,6 +1,6 @@
 import { forbidden } from "../utils/errors.js";
 
-const HIERARCHY = { viewer: 0, editor: 1, admin: 2 };
+const HIERARCHY = { public: -1, viewer: 0, editor: 1, admin: 2 };
 
 export function requireRole(minRole) {
   return (req, _res, next) => {

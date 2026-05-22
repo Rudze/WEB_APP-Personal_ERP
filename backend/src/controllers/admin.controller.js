@@ -9,6 +9,7 @@ const settingsSchema = z.object({
   primaryColor: z.string().optional(),
   language: z.string().optional(),
   modules: z.record(z.boolean()).optional(),
+  publicModules: z.record(z.boolean()).optional(),
 });
 
 export const getSettings = asyncHandler(async (_req, res) => {

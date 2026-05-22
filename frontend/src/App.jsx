@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { Layout } from "@/components/layout/Layout";
+import { PublicLayout } from "@/components/layout/PublicLayout";
 import { Login } from "@/pages/Login";
 import { UsersManagement } from "@/pages/admin/UsersManagement";
 import { AdminSettings } from "@/pages/admin/AdminSettings";
@@ -44,27 +45,38 @@ function RequireAdmin({ children }) {
   return children;
 }
 
+function SmartRoot() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+  return user ? <Layout /> : <PublicLayout />;
+}
+
+function SmartIndex() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={user ? "/dashboards" : "/portfolio"} replace />;
+}
+
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   {
     path: "/",
-    element: (
-      <RequireAuth>
-        <Layout />
-      </RequireAuth>
-    ),
+    element: <SmartRoot />,
     children: [
-      { index: true, element: <Navigate to="/dashboards" replace /> },
+      { index: true, element: <SmartIndex /> },
       {
         path: "dashboards",
         handle: { title: "Dashboards" },
+        element: <RequireAuth><Outlet /></RequireAuth>,
         children: [
           { index: true, element: <DashboardList /> },
-          {
-            path: ":slug",
-            element: <DashboardView />,
-            handle: { title: "Dashboard" },
-          },
+          { path: ":slug", element: <DashboardView />, handle: { title: "Dashboard" } },
         ],
       },
       {
@@ -75,12 +87,20 @@ const router = createBrowserRouter([
           { index: true, element: <WikiPage /> },
           {
             path: "new",
-            element: <WikiEditor />,
+            element: <RequireAuth><WikiEditor /></RequireAuth>,
             handle: { title: "Nouvelle page" },
           },
           { path: ":slug", element: <WikiPage /> },
-          { path: ":slug/edit", element: <WikiEditor />, handle: { title: "Modifier" } },
-          { path: ":slug/versions", element: <WikiVersions />, handle: { title: "Historique" } },
+          {
+            path: ":slug/edit",
+            element: <RequireAuth><WikiEditor /></RequireAuth>,
+            handle: { title: "Modifier" },
+          },
+          {
+            path: ":slug/versions",
+            element: <RequireAuth><WikiVersions /></RequireAuth>,
+            handle: { title: "Historique" },
+          },
         ],
       },
       {
@@ -93,18 +113,16 @@ const router = createBrowserRouter([
       },
       {
         path: "admin",
-        element: <RequireAdmin><Outlet /></RequireAdmin>,
+        element: (
+          <RequireAuth>
+            <RequireAdmin>
+              <Outlet />
+            </RequireAdmin>
+          </RequireAuth>
+        ),
         children: [
-          {
-            path: "users",
-            element: <UsersManagement />,
-            handle: { title: "Utilisateurs" },
-          },
-          {
-            path: "settings",
-            element: <AdminSettings />,
-            handle: { title: "Paramètres" },
-          },
+          { path: "users", element: <UsersManagement />, handle: { title: "Utilisateurs" } },
+          { path: "settings", element: <AdminSettings />, handle: { title: "Paramètres" } },
         ],
       },
     ],

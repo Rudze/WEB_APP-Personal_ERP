@@ -5,6 +5,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./utils/errors.js";
 
+import publicRoutes from "./routes/public.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -13,6 +14,8 @@ import wikiRoutes from "./routes/wiki.routes.js";
 import portfolioRoutes from "./routes/portfolio.routes.js";
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 app.use(
   helmet({
@@ -34,6 +37,7 @@ app.use(express.json({ limit: "2mb" }));
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+app.use("/api/public", publicRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);

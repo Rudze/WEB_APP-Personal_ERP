@@ -116,6 +116,27 @@ export function AdminSettings() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader><CardTitle className="text-base">Accès public (visiteurs non connectés)</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Activer un module ici permet aux visiteurs de le voir dans le menu sans se connecter.
+            Le contenu affiché dépend de la visibilité "Public" configurée sur chaque page / portfolio.
+          </p>
+          {Object.entries(form.publicModules || {}).map(([key, enabled]) => (
+            <div key={key} className="flex items-center justify-between">
+              <Label className="capitalize cursor-pointer">{key}</Label>
+              <Switch
+                checked={enabled}
+                onCheckedChange={(v) =>
+                  setForm({ ...form, publicModules: { ...form.publicModules, [key]: v } })
+                }
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <Button onClick={() => mutation.mutate(form)} disabled={mutation.isPending}>
         {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
         <Save size={14} /> Sauvegarder

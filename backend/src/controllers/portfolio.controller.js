@@ -2,33 +2,46 @@ import { prisma } from "../lib/prisma.js";
 import { asyncHandler, notFound, AppError } from "../utils/errors.js";
 import { z } from "zod";
 
-const HIERARCHY = { viewer: 0, editor: 1, admin: 2 };
+const HIERARCHY = { public: -1, viewer: 0, editor: 1, admin: 2 };
+
+const linkSchema = z.object({ label: z.string(), url: z.string() });
+const skillItemSchema = z.object({ name: z.string(), level: z.number().min(0).max(100) });
+const skillCatSchema = z.object({ category: z.string(), items: z.array(skillItemSchema) });
 
 const portfolioSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
-  visibility: z.enum(["admin", "editor", "viewer"]).default("admin"),
+  visibility: z.enum(["admin", "editor", "viewer", "public"]).default("admin"),
+  profileName: z.string().nullable().optional(),
+  profileTitle: z.string().nullable().optional(),
+  profileBio: z.string().nullable().optional(),
+  profileAvatar: z.string().nullable().optional(),
+  profileLinks: z.array(linkSchema).optional(),
+  skills: z.array(skillCatSchema).optional(),
 });
 
 const entrySchema = z.object({
   title: z.string().min(1),
   shortDesc: z.string().min(1),
   longDesc: z.string().optional(),
+  category: z.string().optional(),
   tags: z.array(z.string()).default([]),
-  images: z.array(z.string().url()).default([]),
-  links: z
-    .array(z.object({ label: z.string(), url: z.string().url() }))
-    .default([]),
+  images: z.array(z.string()).default([]),
+  links: z.array(linkSchema).default([]),
   status: z.enum(["en_cours", "termine", "archive"]).default("termine"),
-  date: z.string().datetime().nullable().optional(),
+  date: z.string().nullable().optional(),
   order: z.number().default(0),
 });
 
 export const listPortfolios = asyncHandler(async (req, res) => {
   const all = await prisma.portfolio.findMany({
     orderBy: { createdAt: "asc" },
-    select: { id: true, title: true, slug: true, description: true, visibility: true, createdAt: true },
+    select: {
+      id: true, title: true, slug: true, description: true,
+      visibility: true, profileName: true, profileTitle: true,
+      profileAvatar: true, createdAt: true,
+    },
   });
   const visible = all.filter(
     (p) => HIERARCHY[req.user.role] >= HIERARCHY[p.visibility]
@@ -81,7 +94,11 @@ export const addEntry = asyncHandler(async (req, res) => {
   if (!portfolio) throw notFound("Portfolio");
 
   const entry = await prisma.portfolioEntry.create({
-    data: { ...data, portfolioId: req.params.id },
+    data: {
+      ...data,
+      date: data.date ? new Date(data.date) : null,
+      portfolioId: req.params.id,
+    },
   });
   res.status(201).json(entry);
 });
@@ -92,7 +109,10 @@ export const updateEntry = asyncHandler(async (req, res) => {
   if (!exists) throw notFound("PortfolioEntry");
   const entry = await prisma.portfolioEntry.update({
     where: { id: req.params.id },
-    data,
+    data: {
+      ...data,
+      ...(data.date !== undefined ? { date: data.date ? new Date(data.date) : null } : {}),
+    },
   });
   res.json(entry);
 });

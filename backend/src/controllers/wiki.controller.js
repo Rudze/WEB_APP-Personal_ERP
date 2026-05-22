@@ -2,7 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { asyncHandler, notFound, AppError } from "../utils/errors.js";
 import { z } from "zod";
 
-const HIERARCHY = { viewer: 0, editor: 1, admin: 2 };
+const HIERARCHY = { public: -1, viewer: 0, editor: 1, admin: 2 };
 
 function canViewPage(page, userRole) {
   return HIERARCHY[userRole] >= HIERARCHY[page.visibility];

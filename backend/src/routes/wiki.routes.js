@@ -3,19 +3,18 @@ import {
   listPages, getPage, createPage, updatePage, deletePage,
   getVersions, getVersion, searchPages,
 } from "../controllers/wiki.controller.js";
-import { authenticate } from "../middlewares/auth.middleware.js";
-import { isAdmin, isEditor, isViewer } from "../middlewares/role.middleware.js";
+import { authenticate, optionalAuthenticate } from "../middlewares/auth.middleware.js";
+import { isAdmin, isEditor } from "../middlewares/role.middleware.js";
 
 const router = Router();
-router.use(authenticate);
 
-router.get("/search", isViewer, searchPages);
-router.get("/", isViewer, listPages);
-router.post("/", isEditor, createPage);
-router.get("/:slug", isViewer, getPage);
-router.put("/:id", isEditor, updatePage);
-router.delete("/:id", isAdmin, deletePage);
-router.get("/:id/versions", isEditor, getVersions);
-router.get("/:id/versions/:versionId", isEditor, getVersion);
+router.get("/search", optionalAuthenticate, searchPages);
+router.get("/", optionalAuthenticate, listPages);
+router.post("/", authenticate, isEditor, createPage);
+router.get("/:slug", optionalAuthenticate, getPage);
+router.put("/:id", authenticate, isEditor, updatePage);
+router.delete("/:id", authenticate, isAdmin, deletePage);
+router.get("/:id/versions", authenticate, isEditor, getVersions);
+router.get("/:id/versions/:versionId", authenticate, isEditor, getVersion);
 
 export default router;

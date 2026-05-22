@@ -51,6 +51,10 @@ api.interceptors.response.use(
   }
 );
 
+export const publicApi = {
+  getConfig: () => api.get("/public/config"),
+};
+
 export const authApi = {
   login: (data) => api.post("/auth/login", data),
   logout: () => api.post("/auth/logout"),

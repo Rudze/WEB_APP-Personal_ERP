@@ -142,8 +142,9 @@ export function PortfolioList() {
               <Select value={form.visibility} onValueChange={(v) => setForm({ ...form, visibility: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="viewer">Lecteur</SelectItem>
-                  <SelectItem value="editor">Éditeur</SelectItem>
+                  <SelectItem value="public">Public (visiteurs)</SelectItem>
+                  <SelectItem value="viewer">Connectés</SelectItem>
+                  <SelectItem value="editor">Éditeurs</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
