@@ -10,9 +10,18 @@ router.get("/config", asyncHandler(async (_req, res) => {
     update: {},
     create: { id: "singleton" },
   });
+
+  const [wikiCount, portfolioCount] = await Promise.all([
+    prisma.wikiPage.count({ where: { visibility: "public" } }),
+    prisma.portfolio.count({ where: { visibility: "public" } }),
+  ]);
+
   res.json({
     appName: settings.appName,
-    publicModules: settings.publicModules,
+    publicModules: {
+      wiki: wikiCount > 0,
+      portfolio: portfolioCount > 0,
+    },
   });
 }));
 
