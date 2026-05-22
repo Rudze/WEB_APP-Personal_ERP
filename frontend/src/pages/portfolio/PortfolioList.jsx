@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { portfolioApi } from "@/lib/api";
+import { portfolioApi, uploadApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Loader2, Pencil, ExternalLink, Github } from "lucide-react";
+import { Plus, Trash2, Loader2, Pencil, ExternalLink, Github, ImagePlus, X } from "lucide-react";
 import { slugify, formatDate, STATUS_LABELS, STATUS_COLORS } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/useToast";
@@ -188,13 +188,17 @@ export function PortfolioList() {
 }
 
 function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending }) {
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
   const [form, setForm] = useState({
     title: "", slug: "", description: "", category: "", authorName: "",
     date: "", status: "termine", imageUrl: "", webLink: "", gitLink: "",
     tags: "", visibility: "viewer",
   });
 
-  useState(() => {
+  useEffect(() => {
     if (editing) {
       setForm({
         title: editing.title,
@@ -214,6 +218,21 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
       setForm({ title: "", slug: "", description: "", category: "", authorName: "", date: "", status: "termine", imageUrl: "", webLink: "", gitLink: "", tags: "", visibility: "viewer" });
     }
   }, [editing]);
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data } = await uploadApi.image(file);
+      setForm((f) => ({ ...f, imageUrl: data.url }));
+    } catch {
+      toast({ title: "Erreur lors de l'upload", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
 
   function handleTitleChange(title) {
     setForm((f) => ({ ...f, title, slug: editing ? f.slug : slugify(title) }));
@@ -279,8 +298,49 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Image d'illustration (URL)</Label>
-            <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
+            <Label className="text-xs">Image d'illustration</Label>
+            <div className="flex gap-2">
+              <Input
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                placeholder="URL ou cliquez sur Importer"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
+                Importer
+              </Button>
+              {form.imageUrl && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setForm({ ...form, imageUrl: "" })}
+                >
+                  <X size={14} />
+                </Button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+            {form.imageUrl && (
+              <img
+                src={form.imageUrl}
+                alt="Aperçu"
+                className="mt-2 h-28 w-full object-cover rounded-md border border-border"
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
