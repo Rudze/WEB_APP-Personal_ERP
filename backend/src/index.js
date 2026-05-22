@@ -7,6 +7,7 @@ import { errorHandler } from "./utils/errors.js";
 
 import publicRoutes from "./routes/public.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import cvRoutes from "./routes/cv.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
@@ -42,6 +43,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/dashboards", dashboardRoutes);
+app.use("/api/cv", cvRoutes);
 app.use("/api/wiki", wikiRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 

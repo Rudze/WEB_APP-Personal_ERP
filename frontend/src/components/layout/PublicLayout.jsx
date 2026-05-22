@@ -4,7 +4,7 @@ import { publicApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/toaster";
-import { BookOpen, Briefcase, LogIn } from "lucide-react";
+import { BookOpen, Briefcase, GraduationCap, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function PublicLayout() {
@@ -20,6 +20,7 @@ export function PublicLayout() {
   const navLinks = [
     publicModules.wiki && { label: "Wiki", icon: BookOpen, path: "/wiki" },
     publicModules.portfolio && { label: "Portfolio", icon: Briefcase, path: "/portfolio" },
+    publicModules.cv && { label: "CV", icon: GraduationCap, path: "/cv" },
   ].filter(Boolean);
 
   return (

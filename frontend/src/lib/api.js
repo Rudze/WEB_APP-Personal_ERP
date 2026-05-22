@@ -22,7 +22,7 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
     if (error.response?.status === 401 && !original._retry) {
-      if (original.url?.includes("/auth/")) {
+      if (original.url?.includes("/auth/refresh") || original.url?.includes("/auth/login")) {
         return Promise.reject(error);
       }
 
@@ -94,6 +94,14 @@ export const wikiApi = {
   delete: (id) => api.delete(`/wiki/${id}`),
   getVersions: (id) => api.get(`/wiki/${id}/versions`),
   getVersion: (id, versionId) => api.get(`/wiki/${id}/versions/${versionId}`),
+};
+
+export const cvApi = {
+  get: () => api.get("/cv"),
+  updateProfile: (data) => api.put("/cv/profile", data),
+  createFormation: (data) => api.post("/cv/formations", data),
+  updateFormation: (id, data) => api.put(`/cv/formations/${id}`, data),
+  deleteFormation: (id) => api.delete(`/cv/formations/${id}`),
 };
 
 export const portfolioApi = {

@@ -11,9 +11,10 @@ router.get("/config", asyncHandler(async (_req, res) => {
     create: { id: "singleton" },
   });
 
-  const [wikiCount, portfolioCount] = await Promise.all([
+  const [wikiCount, portfolioCount, cvProfile] = await Promise.all([
     prisma.wikiPage.count({ where: { visibility: "public" } }),
     prisma.portfolio.count({ where: { visibility: "public" } }),
+    prisma.cVProfile.findUnique({ where: { id: "singleton" }, select: { visibility: true } }),
   ]);
 
   res.json({
@@ -21,6 +22,7 @@ router.get("/config", asyncHandler(async (_req, res) => {
     publicModules: {
       wiki: wikiCount > 0,
       portfolio: portfolioCount > 0,
+      cv: cvProfile?.visibility === "public",
     },
   });
 }));

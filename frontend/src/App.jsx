@@ -15,6 +15,7 @@ import { WikiEditor } from "@/pages/wiki/WikiEditor";
 import { WikiVersions } from "@/pages/wiki/WikiVersions";
 import { PortfolioList } from "@/pages/portfolio/PortfolioList";
 import { PortfolioView } from "@/pages/portfolio/PortfolioView";
+import { CVPage } from "@/pages/cv/CVPage";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient({
@@ -115,6 +116,11 @@ const router = createBrowserRouter([
           { index: true, element: <PortfolioList /> },
           { path: ":slug", element: <PortfolioView /> },
         ],
+      },
+      {
+        path: "cv",
+        handle: { title: "CV" },
+        element: <CVPage />,
       },
       {
         path: "admin",

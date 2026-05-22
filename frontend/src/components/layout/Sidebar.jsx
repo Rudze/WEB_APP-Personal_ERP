@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, Briefcase, Settings, Users,
-  ChevronLeft, ChevronRight, LogOut, Menu,
+  ChevronLeft, ChevronRight, LogOut, GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -15,6 +15,7 @@ const navItems = [
   { label: "Dashboards", icon: LayoutDashboard, path: "/dashboards", minRole: "viewer" },
   { label: "Wiki", icon: BookOpen, path: "/wiki", minRole: "viewer" },
   { label: "Portfolio", icon: Briefcase, path: "/portfolio", minRole: "viewer" },
+  { label: "CV", icon: GraduationCap, path: "/cv", minRole: "viewer" },
 ];
 
 const adminItems = [
