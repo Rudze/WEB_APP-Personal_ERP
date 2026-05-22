@@ -1,24 +1,37 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { wikiApi } from "@/lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Clock, Tag, Loader2, AlertCircle, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, Clock, Tag, Loader2, AlertCircle, ChevronRight } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useToast } from "@/hooks/useToast";
 
 export function WikiPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { isEditor } = usePermissions();
+  const qc = useQueryClient();
+  const { isEditor, isAdmin } = usePermissions();
+  const { toast } = useToast();
 
   const { data: page, isLoading, error } = useQuery({
     queryKey: ["wiki-page", slug],
     queryFn: () => wikiApi.get(slug).then((r) => r.data),
     enabled: !!slug,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => wikiApi.delete(page.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wiki-pages"] });
+      navigate("/wiki");
+      toast({ title: "Page supprimée" });
+    },
+    onError: (e) => toast({ title: "Erreur", description: e.response?.data?.error, variant: "destructive" }),
   });
 
   if (!slug) {
@@ -63,15 +76,27 @@ export function WikiPage() {
             )}
           </div>
         </div>
-        {isEditor && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`/wiki/${slug}/edit`)}
-          >
-            <Pencil size={14} /> Modifier
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {isEditor && (
+            <Button variant="outline" size="sm" onClick={() => navigate(`/wiki/${slug}/edit`)}>
+              <Pencil size={14} /> Modifier
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (confirm(`Supprimer définitivement "${page.title}" ?`)) {
+                  deleteMutation.mutate();
+                }
+              }}
+            >
+              <Trash2 size={14} /> Supprimer
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Children links */}

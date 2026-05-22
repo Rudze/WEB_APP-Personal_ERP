@@ -116,36 +116,19 @@ model WikiPageVersion {
 // ─── Portfolio ────────────────────────────────────────────────────────────────
 
 model Portfolio {
-  id            String           @id @default(cuid())
-  title         String
-  slug          String           @unique
-  description   String?
-  visibility    Visibility       @default(admin)
-  profileName   String?
-  profileTitle  String?
-  profileBio    String?          @db.Text
-  profileAvatar String?
-  profileLinks  Json             @default("[]")
-  skills        Json             @default("[]")
-  entries       PortfolioEntry[]
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-}
-
-model PortfolioEntry {
   id          String      @id @default(cuid())
-  portfolioId String
   title       String
-  shortDesc   String
-  longDesc    String?     @db.Text
+  slug        String      @unique
+  description String?     @db.Text
   category    String?
-  tags        Json        @default("[]")
-  images      Json        @default("[]")
-  links       Json        @default("[]")
-  status      EntryStatus @default(termine)
+  authorName  String?
   date        DateTime?
-  order       Int         @default(0)
-  portfolio   Portfolio   @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  status      EntryStatus @default(termine)
+  imageUrl    String?
+  webLink     String?
+  gitLink     String?
+  tags        Json        @default("[]")
+  visibility  Visibility  @default(viewer)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }

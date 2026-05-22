@@ -4,44 +4,24 @@ import { z } from "zod";
 
 const HIERARCHY = { public: -1, viewer: 0, editor: 1, admin: 2 };
 
-const linkSchema = z.object({ label: z.string(), url: z.string() });
-const skillItemSchema = z.object({ name: z.string(), level: z.number().min(0).max(100) });
-const skillCatSchema = z.object({ category: z.string(), items: z.array(skillItemSchema) });
-
 const portfolioSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
-  visibility: z.enum(["admin", "editor", "viewer", "public"]).default("admin"),
-  profileName: z.string().nullable().optional(),
-  profileTitle: z.string().nullable().optional(),
-  profileBio: z.string().nullable().optional(),
-  profileAvatar: z.string().nullable().optional(),
-  profileLinks: z.array(linkSchema).optional(),
-  skills: z.array(skillCatSchema).optional(),
-});
-
-const entrySchema = z.object({
-  title: z.string().min(1),
-  shortDesc: z.string().min(1),
-  longDesc: z.string().optional(),
   category: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  images: z.array(z.string()).default([]),
-  links: z.array(linkSchema).default([]),
-  status: z.enum(["en_cours", "termine", "archive"]).default("termine"),
+  authorName: z.string().optional(),
   date: z.string().nullable().optional(),
-  order: z.number().default(0),
+  status: z.enum(["en_cours", "termine", "archive"]).default("termine"),
+  imageUrl: z.string().nullable().optional(),
+  webLink: z.string().nullable().optional(),
+  gitLink: z.string().nullable().optional(),
+  tags: z.array(z.string()).default([]),
+  visibility: z.enum(["admin", "editor", "viewer", "public"]).default("viewer"),
 });
 
 export const listPortfolios = asyncHandler(async (req, res) => {
   const all = await prisma.portfolio.findMany({
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true, title: true, slug: true, description: true,
-      visibility: true, profileName: true, profileTitle: true,
-      profileAvatar: true, createdAt: true,
-    },
+    orderBy: { createdAt: "desc" },
   });
   const visible = all.filter(
     (p) => HIERARCHY[req.user.role] >= HIERARCHY[p.visibility]
@@ -52,9 +32,6 @@ export const listPortfolios = asyncHandler(async (req, res) => {
 export const getPortfolio = asyncHandler(async (req, res) => {
   const portfolio = await prisma.portfolio.findUnique({
     where: { slug: req.params.slug },
-    include: {
-      entries: { orderBy: [{ order: "asc" }, { createdAt: "desc" }] },
-    },
   });
   if (!portfolio) throw notFound("Portfolio");
   if (HIERARCHY[req.user.role] < HIERARCHY[portfolio.visibility]) {
@@ -67,7 +44,12 @@ export const createPortfolio = asyncHandler(async (req, res) => {
   const data = portfolioSchema.parse(req.body);
   const exists = await prisma.portfolio.findUnique({ where: { slug: data.slug } });
   if (exists) throw new AppError("Slug déjà utilisé", 409);
-  const portfolio = await prisma.portfolio.create({ data });
+  const portfolio = await prisma.portfolio.create({
+    data: {
+      ...data,
+      date: data.date ? new Date(data.date) : null,
+    },
+  });
   res.status(201).json(portfolio);
 });
 
@@ -76,7 +58,13 @@ export const updatePortfolio = asyncHandler(async (req, res) => {
   const data = portfolioSchema.partial().parse(req.body);
   const exists = await prisma.portfolio.findUnique({ where: { id } });
   if (!exists) throw notFound("Portfolio");
-  const updated = await prisma.portfolio.update({ where: { id }, data });
+  const updated = await prisma.portfolio.update({
+    where: { id },
+    data: {
+      ...data,
+      ...(data.date !== undefined ? { date: data.date ? new Date(data.date) : null } : {}),
+    },
+  });
   res.json(updated);
 });
 
@@ -85,41 +73,5 @@ export const deletePortfolio = asyncHandler(async (req, res) => {
   const exists = await prisma.portfolio.findUnique({ where: { id } });
   if (!exists) throw notFound("Portfolio");
   await prisma.portfolio.delete({ where: { id } });
-  res.json({ ok: true });
-});
-
-export const addEntry = asyncHandler(async (req, res) => {
-  const data = entrySchema.parse(req.body);
-  const portfolio = await prisma.portfolio.findUnique({ where: { id: req.params.id } });
-  if (!portfolio) throw notFound("Portfolio");
-
-  const entry = await prisma.portfolioEntry.create({
-    data: {
-      ...data,
-      date: data.date ? new Date(data.date) : null,
-      portfolioId: req.params.id,
-    },
-  });
-  res.status(201).json(entry);
-});
-
-export const updateEntry = asyncHandler(async (req, res) => {
-  const data = entrySchema.partial().parse(req.body);
-  const exists = await prisma.portfolioEntry.findUnique({ where: { id: req.params.id } });
-  if (!exists) throw notFound("PortfolioEntry");
-  const entry = await prisma.portfolioEntry.update({
-    where: { id: req.params.id },
-    data: {
-      ...data,
-      ...(data.date !== undefined ? { date: data.date ? new Date(data.date) : null } : {}),
-    },
-  });
-  res.json(entry);
-});
-
-export const deleteEntry = asyncHandler(async (req, res) => {
-  const exists = await prisma.portfolioEntry.findUnique({ where: { id: req.params.id } });
-  if (!exists) throw notFound("PortfolioEntry");
-  await prisma.portfolioEntry.delete({ where: { id: req.params.id } });
   res.json({ ok: true });
 });

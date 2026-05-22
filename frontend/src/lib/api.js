@@ -110,7 +110,4 @@ export const portfolioApi = {
   create: (data) => api.post("/portfolio", data),
   update: (id, data) => api.put(`/portfolio/${id}`, data),
   delete: (id) => api.delete(`/portfolio/${id}`),
-  addEntry: (id, data) => api.post(`/portfolio/${id}/entries`, data),
-  updateEntry: (id, data) => api.put(`/portfolio/entries/${id}`, data),
-  deleteEntry: (id) => api.delete(`/portfolio/entries/${id}`),
 };
