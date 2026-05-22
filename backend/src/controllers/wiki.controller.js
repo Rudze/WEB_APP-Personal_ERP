@@ -14,7 +14,7 @@ const pageSchema = z.object({
   content: z.string().default(""),
   parentId: z.string().nullable().optional(),
   tags: z.array(z.string()).default([]),
-  visibility: z.enum(["admin", "editor", "viewer"]).default("admin"),
+  visibility: z.enum(["admin", "editor", "viewer", "public"]).default("viewer"),
   order: z.number().default(0),
 });
 

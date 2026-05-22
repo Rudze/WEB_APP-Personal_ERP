@@ -20,7 +20,7 @@ export function PortfolioList() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ title: "", slug: "", description: "", visibility: "admin" });
+  const [form, setForm] = useState({ title: "", slug: "", description: "", visibility: "viewer" });
 
   const { data: portfolios = [], isLoading } = useQuery({
     queryKey: ["portfolios"],
@@ -142,10 +142,8 @@ export function PortfolioList() {
               <Select value={form.visibility} onValueChange={(v) => setForm({ ...form, visibility: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">Public (visiteurs)</SelectItem>
-                  <SelectItem value="viewer">Connectés</SelectItem>
-                  <SelectItem value="editor">Éditeurs</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="viewer">Privé (connectés uniquement)</SelectItem>
+                  <SelectItem value="public">Public (tout le monde)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
