@@ -23,7 +23,7 @@ export function WikiEditor() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { theme } = useTheme();
-  const isNew = slug === "new";
+  const isNew = !slug; // route /wiki/new has no :slug param
 
   const [form, setForm] = useState({
     title: "",
