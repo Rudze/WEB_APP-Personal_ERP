@@ -3,6 +3,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import { existsSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import { errorHandler } from "./utils/errors.js";
 
 import publicRoutes from "./routes/public.routes.js";
@@ -14,6 +17,9 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import wikiRoutes from "./routes/wiki.routes.js";
 import portfolioRoutes from "./routes/portfolio.routes.js";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const publicDir = join(__dirname, "../public");
+
 const app = express();
 
 app.set("trust proxy", 1);
@@ -21,6 +27,7 @@ app.set("trust proxy", 1);
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
   })
 );
 
@@ -36,6 +43,12 @@ app.use(
 app.use(cookieParser());
 app.use(express.json({ limit: "2mb" }));
 
+// Serve static frontend build if present
+if (existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+}
+
+// ── API routes ────────────────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/public", publicRoutes);
@@ -47,7 +60,16 @@ app.use("/api/cv", cvRoutes);
 app.use("/api/wiki", wikiRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 
-app.use((_req, res) => res.status(404).json({ error: "Not found" }));
+// ── SPA fallback (React Router) ───────────────────────────────────────────────
+app.get("*", (req, res) => {
+  const indexPath = join(publicDir, "index.html");
+  if (existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: "Not found" });
+  }
+});
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;

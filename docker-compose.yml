@@ -21,13 +21,15 @@ services:
       retries: 10
       start_period: 30s
 
-  # ── Backend API ──────────────────────────────────────────────────────────────
-  backend:
+  # ── Application (frontend + backend) ──────────────────────────────────────
+  app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
     ports:
-      - "4000:4000"
+      - "5173:4000"
     environment:
       NODE_ENV: production
       COOKIE_SECURE: "false"
@@ -38,19 +40,6 @@ services:
       JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
       PORT: 4000
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-    restart: unless-stopped
-
-  # ── Frontend (React + nginx) ─────────────────────────────────────────────────
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-/api}
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
     restart: unless-stopped
 
 volumes:

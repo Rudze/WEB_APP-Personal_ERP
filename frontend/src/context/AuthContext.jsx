@@ -22,6 +22,12 @@ export function AuthProvider({ children }) {
     fetchMe();
   }, [fetchMe]);
 
+  useEffect(() => {
+    const handler = () => setUser(null);
+    window.addEventListener("auth:session-expired", handler);
+    return () => window.removeEventListener("auth:session-expired", handler);
+  }, []);
+
   const login = useCallback(async (email, password) => {
     const { data } = await authApi.login({ email, password });
     setUser(data.user);

@@ -41,7 +41,7 @@ api.interceptors.response.use(
         return api(original);
       } catch (refreshError) {
         processQueue(refreshError);
-        window.location.href = "/login";
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
