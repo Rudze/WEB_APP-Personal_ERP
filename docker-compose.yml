@@ -40,7 +40,10 @@ services:
       JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
       PORT: 4000
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    volumes:
+      - uploads_data:/app/uploads
     restart: unless-stopped
 
 volumes:
   mysql_data:
+  uploads_data:

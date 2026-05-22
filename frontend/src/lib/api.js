@@ -55,6 +55,14 @@ export const publicApi = {
   getConfig: () => api.get("/public/config"),
 };
 
+export const uploadApi = {
+  image: (file) => {
+    const form = new FormData();
+    form.append("file", file);
+    return api.post("/uploads", form, { headers: { "Content-Type": "multipart/form-data" } });
+  },
+};
+
 export const authApi = {
   login: (data) => api.post("/auth/login", data),
   logout: () => api.post("/auth/logout"),

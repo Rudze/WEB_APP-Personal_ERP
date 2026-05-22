@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { wikiApi } from "@/lib/api";
+import { wikiApi, uploadApi } from "@/lib/api";
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, X, History } from "lucide-react";
+import { Loader2, Save, X, History, ImagePlus } from "lucide-react";
 import { slugify } from "@/lib/utils";
 import { useToast } from "@/hooks/useToast";
 import { useTheme } from "@/context/ThemeContext";
@@ -24,6 +24,9 @@ export function WikiEditor() {
   const { toast } = useToast();
   const { theme } = useTheme();
   const isNew = !slug; // route /wiki/new has no :slug param
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const editorRef = useRef(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -76,6 +79,29 @@ export function WikiEditor() {
     setForm((f) => ({ ...f, title, slug: isNew ? slugify(title) : f.slug }));
   }
 
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data } = await uploadApi.image(file);
+      const markdown = `![${file.name}](${data.url})`;
+      const view = editorRef.current?.view;
+      if (view) {
+        const pos = view.state.selection.main.head;
+        view.dispatch({ changes: { from: pos, insert: markdown } });
+        setForm((f) => ({ ...f, content: view.state.doc.toString() }));
+      } else {
+        setForm((f) => ({ ...f, content: f.content + "\n" + markdown }));
+      }
+    } catch {
+      toast({ title: "Erreur lors de l'upload", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
     mutation.mutate({
@@ -113,6 +139,24 @@ export function WikiEditor() {
               <History size={14} /> Historique
             </Button>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            title="Insérer une image"
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
+            Image
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+          />
           <Button type="submit" size="sm" disabled={mutation.isPending}>
             {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
             <Save size={14} /> Sauvegarder
@@ -179,6 +223,7 @@ export function WikiEditor() {
         </TabsList>
         <TabsContent value="editor" className="flex-1 min-h-0 mt-0">
           <CodeMirror
+            ref={editorRef}
             value={form.content}
             height="100%"
             extensions={[markdown()]}
@@ -190,6 +235,7 @@ export function WikiEditor() {
         <TabsContent value="split" className="flex-1 min-h-0 mt-0 flex">
           <div className="flex-1 min-w-0 border-r border-border overflow-auto">
             <CodeMirror
+              ref={editorRef}
               value={form.content}
               height="100%"
               extensions={[markdown()]}

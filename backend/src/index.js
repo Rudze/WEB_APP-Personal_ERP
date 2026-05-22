@@ -10,6 +10,7 @@ import { errorHandler } from "./utils/errors.js";
 
 import publicRoutes from "./routes/public.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 import cvRoutes from "./routes/cv.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -48,11 +49,16 @@ if (existsSync(publicDir)) {
   app.use(express.static(publicDir));
 }
 
+// Serve uploaded files
+const uploadsDir = join(__dirname, "../uploads");
+app.use("/uploads", express.static(uploadsDir));
+
 // ── API routes ────────────────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/public", publicRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/uploads", uploadRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/dashboards", dashboardRoutes);
