@@ -1,19 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@/lib/api";
+import { adminApi, uploadApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Save, Settings } from "lucide-react";
+import { ImagePlus, Loader2, Save, Settings, X } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 
 export function AdminSettings() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [form, setForm] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["admin-settings"],
@@ -25,13 +27,31 @@ export function AdminSettings() {
   }, [settings]);
 
   const mutation = useMutation({
-    mutationFn: (data) => adminApi.updateSettings(data),
+    mutationFn: (data) => {
+      const { appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules } = data;
+      return adminApi.updateSettings({ appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-settings"] });
       toast({ title: "Paramètres sauvegardés" });
     },
     onError: (e) => toast({ title: "Erreur", description: e.response?.data?.error, variant: "destructive" }),
   });
+
+  async function handleLogoUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data } = await uploadApi.image(file);
+      setForm((f) => ({ ...f, logoUrl: data.url }));
+    } catch {
+      toast({ title: "Erreur lors de l'upload", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
 
   if (isLoading || !form) {
     return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
@@ -52,13 +72,49 @@ export function AdminSettings() {
             <Input value={form.appName} onChange={(e) => setForm({ ...form, appName: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>URL du logo</Label>
-            <Input
-              type="url"
-              placeholder="https://..."
-              value={form.logoUrl || ""}
-              onChange={(e) => setForm({ ...form, logoUrl: e.target.value || null })}
+            <Label>Logo</Label>
+            <div className="flex gap-2">
+              <Input
+                value={form.logoUrl || ""}
+                onChange={(e) => setForm({ ...form, logoUrl: e.target.value || null })}
+                placeholder="URL ou cliquez sur Importer"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
+                Importer
+              </Button>
+              {form.logoUrl && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setForm({ ...form, logoUrl: null })}
+                >
+                  <X size={14} />
+                </Button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLogoUpload}
             />
+            {form.logoUrl && (
+              <img
+                src={form.logoUrl}
+                alt="Aperçu logo"
+                className="mt-2 h-16 object-contain rounded-md border border-border bg-muted p-1"
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

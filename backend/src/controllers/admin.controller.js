@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const settingsSchema = z.object({
   appName: z.string().min(1).optional(),
-  logoUrl: z.string().url().nullable().optional(),
+  logoUrl: z.string().nullable().optional(),
   defaultTheme: z.enum(["dark", "light"]).optional(),
   primaryColor: z.string().optional(),
   language: z.string().optional(),
