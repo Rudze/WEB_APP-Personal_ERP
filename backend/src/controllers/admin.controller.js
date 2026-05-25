@@ -3,10 +3,7 @@ import { asyncHandler } from "../utils/errors.js";
 import { z } from "zod";
 
 const landingSchema = z.object({
-  heroTitle: z.string().optional(),
-  heroSubtitle: z.string().optional(),
-  heroDescription: z.string().optional(),
-  sections: z.string().optional(),
+  content: z.string().optional(),
 });
 
 const settingsSchema = z.object({

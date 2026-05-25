@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImagePlus, Loader2, Save, Settings, X, Globe, Layout } from "lucide-react";
+import { ImagePlus, Loader2, Save, Settings, X, Globe } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
@@ -172,15 +172,15 @@ function GeneralTab({ settings }) {
 function LandingTab() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const [preview, setPreview] = useState(false);
-  const [form, setForm] = useState({ heroTitle: "", heroSubtitle: "", heroDescription: "", sections: "" });
+  const [tab, setTab] = useState("editor");
+  const [content, setContent] = useState("");
 
   const { data: landing, isLoading } = useQuery({
     queryKey: ["admin-landing"],
     queryFn: () => adminApi.getLanding().then((r) => r.data),
   });
 
-  useEffect(() => { if (landing) setForm({ heroTitle: "", heroSubtitle: "", heroDescription: "", sections: "", ...landing }); }, [landing]);
+  useEffect(() => { if (landing) setContent(landing.content || ""); }, [landing]);
 
   const mutation = useMutation({
     mutationFn: (data) => adminApi.updateLanding(data),
@@ -196,76 +196,56 @@ function LandingTab() {
 
   return (
     <div className="space-y-6">
-      {/* Hero config */}
-      <section className="card-surface p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Section Hero</h3>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Titre principal</Label>
-            <Input
-              value={form.heroTitle}
-              onChange={(e) => setForm({ ...form, heroTitle: e.target.value })}
-              placeholder="Personal ERP"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Sous-titre</Label>
-            <Input
-              value={form.heroSubtitle}
-              onChange={(e) => setForm({ ...form, heroSubtitle: e.target.value })}
-              placeholder="Gérez. Organisez. Évoluez."
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Description</Label>
-            <Input
-              value={form.heroDescription}
-              onChange={(e) => setForm({ ...form, heroDescription: e.target.value })}
-              placeholder="Votre espace personnel centralisé..."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Sections Markdown */}
       <section className="card-surface p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Sections personnalisées</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Contenu Markdown affiché après les fonctionnalités.</p>
+            <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Contenu de la page d'accueil</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Markdown affiché aux visiteurs non connectés.</p>
           </div>
-          <Button variant="outline" size="sm" className="text-xs h-7 gap-1.5" onClick={() => setPreview((v) => !v)}>
-            {preview ? "Éditeur" : "Aperçu"}
-          </Button>
+          <div className="flex gap-1 bg-muted/40 border border-border/40 rounded-lg p-0.5">
+            {["editor", "preview"].map((v) => (
+              <button
+                key={v}
+                onClick={() => setTab(v)}
+                className="px-3 py-1 rounded-md text-xs transition-all duration-150"
+                style={{
+                  background: tab === v ? "hsl(240,2%,18%)" : "transparent",
+                  color: tab === v ? "hsl(0,0%,98%)" : "hsl(0,0%,55%)",
+                }}
+              >
+                {v === "editor" ? "Éditeur" : "Aperçu"}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {preview ? (
-          <div className="rounded-xl border border-border/40 bg-muted/20 p-6 min-h-[300px] overflow-auto">
-            {form.sections ? (
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.sections}</ReactMarkdown>
+        {tab === "preview" ? (
+          <div className="rounded-xl border border-border/40 bg-muted/20 p-6 min-h-[400px] overflow-auto">
+            {content ? (
+              <div className="prose-erp">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm text-center py-10">Aucun contenu à afficher.</p>
+              <p className="text-muted-foreground text-sm text-center py-16">Aucun contenu à afficher.</p>
             )}
           </div>
         ) : (
           <div className="rounded-xl overflow-hidden border border-border/40">
             <CodeMirror
-              value={form.sections}
-              height="300px"
+              value={content}
+              height="400px"
               extensions={[markdown()]}
               theme={oneDark}
-              onChange={(v) => setForm({ ...form, sections: v })}
+              onChange={(v) => setContent(v)}
             />
           </div>
         )}
       </section>
 
-      <Button onClick={() => mutation.mutate(form)} disabled={mutation.isPending} className="gap-2">
+      <Button onClick={() => mutation.mutate({ content })} disabled={mutation.isPending} className="gap-2">
         {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
         <Save size={14} />
-        Sauvegarder la page d'accueil
+        Sauvegarder
       </Button>
     </div>
   );
