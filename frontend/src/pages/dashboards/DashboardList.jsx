@@ -9,6 +9,7 @@ import { useState } from "react";
 import { DashboardFormDialog } from "./DashboardFormDialog";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export function DashboardList() {
   const qc = useQueryClient();
@@ -17,6 +18,7 @@ export function DashboardList() {
   const { toast } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  useScrollReveal();
 
   const { data: dashboards = [], isLoading } = useQuery({
     queryKey: ["dashboards"],
