@@ -20,7 +20,7 @@
   --eerie-black-2: hsl(240,2%,12%);
   --smoky-black: hsl(0,0%,7%);
   --white-2: hsl(0,0%,98%);
-  --purple-color-crayola: #B298BA;
+  --purple-color-crayola: hsl(var(--primary));
   --light-gray: hsl(0,0%,84%);
   --light-gray-70: hsla(0,0%,84%,0.7);
 

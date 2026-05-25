@@ -63,14 +63,9 @@ export function PublicLayout() {
                   <NavLink
                     key={path}
                     to={path}
-                    className={({ isActive }) => cn(
-                      "px-3 py-1.5 rounded-lg text-sm transition-all duration-200",
-                      isActive
-                        ? "text-[#B298BA]"
-                        : "hover:text-[#C7B1CD] transition-colors"
-                    )}
+                    className="px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
                     style={({ isActive }) => ({
-                      color: isActive ? "#B298BA" : "hsl(0,0%,84%)",
+                      color: isActive ? "hsl(var(--primary))" : "hsl(0,0%,84%)",
                       fontWeight: isActive ? 500 : 400,
                     })}
                   >
@@ -134,7 +129,7 @@ export function PublicLayout() {
                     isActive ? "" : "hover:bg-white/5"
                   )}
                   style={({ isActive }) => ({
-                    color: isActive ? "#B298BA" : "hsl(0,0%,84%)",
+                    color: isActive ? "hsl(var(--primary))" : "hsl(0,0%,84%)",
                     fontWeight: isActive ? 500 : 400,
                   })}
                 >

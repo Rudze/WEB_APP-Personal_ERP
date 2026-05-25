@@ -7,8 +7,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useSettings } from "@/context/SettingsContext";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const navItems = [
   { label: "Dashboards", icon: LayoutDashboard, path: "/dashboards", minRole: "viewer" },
@@ -30,64 +28,74 @@ export function Sidebar({ collapsed, onToggle }) {
   return (
     <aside
       className={cn(
-        "flex flex-col h-full transition-all duration-300 ease-in-out relative",
-        "border-r border-sidebar-border",
-        "bg-sidebar",
-        collapsed ? "w-[60px]" : "w-60"
+        "flex flex-col h-full transition-all duration-300 ease-in-out relative overflow-hidden shrink-0",
+        collapsed ? "w-[60px]" : "w-56"
       )}
-      style={{ backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
+      style={{
+        background: "hsl(240,2%,12%)",
+        border: "1px solid hsl(0,0%,22%)",
+        borderRadius: "20px",
+        boxShadow: "-4px 8px 24px hsla(0,0%,0%,0.25)",
+      }}
     >
-      {/* Top gradient accent */}
+      {/* Subtle top glow */}
       <div
-        className="absolute top-0 left-0 right-0 h-40 pointer-events-none z-0"
-        style={{ background: "radial-gradient(ellipse at top, hsl(var(--primary) / 0.07), transparent 70%)" }}
+        className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse at top, hsl(var(--primary) / 0.06), transparent 70%)" }}
       />
 
       {/* ── Brand ── */}
       <div
         className={cn(
-          "relative z-10 flex items-center h-14 px-3 border-b border-sidebar-border/40 shrink-0",
+          "relative flex items-center h-14 px-3 shrink-0",
           collapsed ? "justify-center" : "justify-between gap-2"
         )}
+        style={{ borderBottom: "1px solid hsl(0,0%,18%)" }}
       >
         {!collapsed && (
           <div className="flex-1 min-w-0">
             {logoUrl ? (
-              <img src={logoUrl} alt={appName || "Logo"} className="h-7 object-contain max-w-[130px]" />
+              <img src={logoUrl} alt={appName || "Logo"} className="h-7 object-contain max-w-[120px]" />
             ) : (
-              <span className="font-semibold text-sm tracking-tight gradient-text truncate">
+              <span
+                className="font-semibold text-sm tracking-tight gradient-text-portfolio truncate block"
+                style={{ fontFamily: "'Poppins', sans-serif" }}
+              >
                 {appName || "Personal ERP"}
               </span>
             )}
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 h-7 w-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-white/5 rounded-lg"
+        <button
+          className="shrink-0 h-7 w-7 rounded-lg flex items-center justify-center transition-colors duration-150"
+          style={{ color: "hsl(0,0%,55%)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "hsl(0,0%,84%)"; e.currentTarget.style.background = "hsl(0,0%,18%)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "hsl(0,0%,55%)"; e.currentTarget.style.background = "transparent"; }}
           onClick={onToggle}
           title={collapsed ? "Développer" : "Réduire"}
         >
           {collapsed ? <PanelLeft size={14} /> : <PanelLeftClose size={14} />}
-        </Button>
+        </button>
       </div>
 
       {/* ── Navigation ── */}
-      <ScrollArea className="flex-1 py-3 relative z-10">
+      <div className="flex-1 overflow-y-auto py-3 relative">
         <nav className="px-2 space-y-0.5">
           {navItems.filter((i) => can(i.minRole)).map((item) => (
             <NavItem key={item.path} item={item} collapsed={collapsed} />
           ))}
         </nav>
 
-        {/* Admin section */}
         {can("admin") && (
           <>
             <div className="px-3 py-3">
-              <div className="h-px bg-sidebar-border/40" />
+              <div style={{ height: "1px", background: "hsl(0,0%,18%)" }} />
             </div>
             {!collapsed && (
-              <p className="px-4 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/35">
+              <p
+                className="px-4 mb-1.5 text-[10px] font-semibold uppercase tracking-widest"
+                style={{ color: "hsl(0,0%,40%)" }}
+              >
                 Admin
               </p>
             )}
@@ -98,29 +106,41 @@ export function Sidebar({ collapsed, onToggle }) {
             </nav>
           </>
         )}
-      </ScrollArea>
+      </div>
 
       {/* ── User footer ── */}
-      <div className="relative z-10 border-t border-sidebar-border/40 p-2 shrink-0">
+      <div
+        className="relative shrink-0 p-2"
+        style={{ borderTop: "1px solid hsl(0,0%,18%)" }}
+      >
         <div className={cn("flex items-center gap-2.5 px-1.5 py-1.5 rounded-xl", collapsed && "justify-center")}>
-          <div className="w-7 h-7 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-xs font-semibold text-primary shrink-0 glow-primary-sm">
+          {/* Avatar — portfolio avatar-box style */}
+          <div
+            className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold"
+            style={{
+              background: "hsl(var(--primary) / 0.15)",
+              border: "1px solid hsl(var(--primary) / 0.3)",
+              color: "hsl(var(--primary))",
+            }}
+          >
             {user?.name?.[0]?.toUpperCase() || "?"}
           </div>
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate text-sidebar-foreground">{user?.name}</p>
-                <p className="text-[10px] text-sidebar-foreground/45 truncate">{user?.email}</p>
+                <p className="text-xs font-medium truncate" style={{ color: "hsl(0,0%,84%)" }}>{user?.name}</p>
+                <p className="text-[10px] truncate" style={{ color: "hsl(0,0%,45%)" }}>{user?.email}</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 h-6 w-6 text-sidebar-foreground/35 hover:text-sidebar-foreground hover:bg-white/5 rounded-lg"
+              <button
+                className="shrink-0 h-6 w-6 rounded-lg flex items-center justify-center transition-colors duration-150"
+                style={{ color: "hsl(0,0%,40%)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "hsl(0,0%,75%)"; e.currentTarget.style.background = "hsl(0,0%,18%)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "hsl(0,0%,40%)"; e.currentTarget.style.background = "transparent"; }}
                 onClick={logout}
                 title="Se déconnecter"
               >
                 <LogOut size={13} />
-              </Button>
+              </button>
             </>
           )}
         </div>
@@ -137,14 +157,15 @@ function NavItem({ item, collapsed }) {
   return (
     <NavLink
       to={path}
-      className={cn(
-        "sidebar-link flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-all duration-150",
-        collapsed ? "justify-center" : "",
-        isActive
-          ? "active bg-primary/[0.1] text-primary"
-          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-white/[0.04]"
-      )}
       title={collapsed ? label : undefined}
+      className="sidebar-link flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-all duration-150"
+      style={{
+        justifyContent: collapsed ? "center" : undefined,
+        color: isActive ? "hsl(var(--primary))" : "hsl(0,0%,60%)",
+        background: isActive ? "hsl(var(--primary) / 0.1)" : "transparent",
+      }}
+      onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.color = "hsl(0,0%,84%)"; e.currentTarget.style.background = "hsl(0,0%,18%)"; } }}
+      onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.color = "hsl(0,0%,60%)"; e.currentTarget.style.background = "transparent"; } }}
     >
       <Icon size={15} className="shrink-0" />
       {!collapsed && <span className="truncate">{label}</span>}

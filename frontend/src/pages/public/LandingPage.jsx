@@ -39,13 +39,13 @@ const modules = [
     icon: Briefcase,
     title: "Portfolio",
     description: "Présentez vos projets avec images, catégories, tags et liens vers vos réalisations publiques ou privées.",
-    accent: "#B298BA",
+    accent: "hsl(var(--primary))",
   },
   {
     icon: GraduationCap,
     title: "Curriculum Vitae",
     description: "Profil professionnel complet : formations, certifications, compétences avec barres de progression.",
-    accent: "#C7B1CD",
+    accent: "hsl(var(--primary))",
   },
 ];
 
