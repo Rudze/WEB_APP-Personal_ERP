@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Loader2, Pencil, ExternalLink, Github, ImagePlus, X, Eye, Briefcase } from "lucide-react";
+import { Plus, Trash2, Loader2, Pencil, ExternalLink, ImagePlus, X, Briefcase } from "lucide-react";
 import { slugify, formatDate, STATUS_LABELS, STATUS_COLORS } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/useToast";
@@ -118,8 +118,12 @@ export function PortfolioList() {
           {filtered.map((p, i) => (
             <div
               key={p.id}
-              className={cn("project-card card-surface feature-card group cursor-pointer overflow-hidden", `reveal reveal-delay-${Math.min(i + 1, 5)}`)}
-              onClick={() => navigate(`/portfolio/${p.slug}`)}
+              className={cn(
+                "project-card card-surface feature-card group overflow-hidden",
+                `reveal reveal-delay-${Math.min(i + 1, 5)}`,
+                p.gitLink ? "cursor-pointer" : "cursor-default"
+              )}
+              onClick={() => p.gitLink && window.open(p.gitLink, "_blank", "noreferrer")}
             >
               {/* Image with hover overlay */}
               {p.imageUrl ? (
@@ -129,11 +133,13 @@ export function PortfolioList() {
                     alt={p.title}
                     className="w-full h-full object-cover transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-primary/90 rounded-xl p-3 shadow-lg">
-                      <Eye size={18} className="text-white" />
+                  {p.gitLink && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-primary/90 rounded-xl p-3 shadow-lg">
+                        <ExternalLink size={18} className="text-white" />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ) : (
                 <div className="h-28 rounded-t-[13px] flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 border-b border-border/20">
@@ -194,22 +200,11 @@ export function PortfolioList() {
                 {/* Footer */}
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30 text-xs text-muted-foreground">
                   {p.date ? <span>{formatDate(p.date)}</span> : <span />}
-                  <div className="flex gap-3">
-                    {p.webLink && (
-                      <a href={p.webLink} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1 text-primary hover:underline"
-                        onClick={(e) => e.stopPropagation()}>
-                        <ExternalLink size={10} /> Démo
-                      </a>
-                    )}
-                    {p.gitLink && (
-                      <a href={p.gitLink} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1 hover:text-foreground transition-colors"
-                        onClick={(e) => e.stopPropagation()}>
-                        <Github size={10} /> Code
-                      </a>
-                    )}
-                  </div>
+                  {p.gitLink && (
+                    <span className="flex items-center gap-1 text-primary/60">
+                      <ExternalLink size={10} /> Lien
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -235,7 +230,7 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
 
   const [form, setForm] = useState({
     title: "", slug: "", description: "", category: "", authorName: "",
-    date: "", status: "termine", imageUrl: "", webLink: "", gitLink: "",
+    date: "", status: "termine", imageUrl: "", gitLink: "",
     tags: "", visibility: "viewer",
   });
 
@@ -250,13 +245,12 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
         date: editing.date ? editing.date.split("T")[0] : "",
         status: editing.status,
         imageUrl: editing.imageUrl || "",
-        webLink: editing.webLink || "",
         gitLink: editing.gitLink || "",
         tags: editing.tags?.join(", ") || "",
         visibility: editing.visibility,
       });
     } else {
-      setForm({ title: "", slug: "", description: "", category: "", authorName: "", date: "", status: "termine", imageUrl: "", webLink: "", gitLink: "", tags: "", visibility: "viewer" });
+      setForm({ title: "", slug: "", description: "", category: "", authorName: "", date: "", status: "termine", imageUrl: "", gitLink: "", tags: "", visibility: "viewer" });
     }
   }, [editing]);
 
@@ -354,15 +348,9 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
               <img src={form.imageUrl} alt="Aperçu" className="mt-2 h-28 w-full object-cover rounded-lg border border-border" />
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Lien web / démo</Label>
-              <Input value={form.webLink} onChange={(e) => setForm({ ...form, webLink: e.target.value })} placeholder="https://..." />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Lien GitHub / Git</Label>
-              <Input value={form.gitLink} onChange={(e) => setForm({ ...form, gitLink: e.target.value })} placeholder="https://github.com/..." />
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Lien du projet (GitHub, portfolio, site…)</Label>
+            <Input value={form.gitLink} onChange={(e) => setForm({ ...form, gitLink: e.target.value })} placeholder="https://github.com/..." />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Tags (séparés par virgule)</Label>
