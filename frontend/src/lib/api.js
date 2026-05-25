@@ -79,6 +79,8 @@ export const usersApi = {
 export const adminApi = {
   getSettings: () => api.get("/admin/settings"),
   updateSettings: (data) => api.put("/admin/settings", data),
+  getLanding: () => api.get("/admin/landing"),
+  updateLanding: (data) => api.put("/admin/landing", data),
 };
 
 export const dashboardsApi = {

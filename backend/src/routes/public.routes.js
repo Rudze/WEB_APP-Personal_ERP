@@ -22,6 +22,7 @@ router.get("/config", asyncHandler(async (_req, res) => {
     logoUrl: settings.logoUrl,
     primaryColor: settings.primaryColor,
     defaultTheme: settings.defaultTheme,
+    landingContent: settings.landingContent || {},
     publicModules: {
       wiki: wikiCount > 0,
       portfolio: portfolioCount > 0,

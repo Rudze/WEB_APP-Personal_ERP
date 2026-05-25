@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { LandingPage } from "@/pages/public/LandingPage";
 import { Layout } from "@/components/layout/Layout";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { Login } from "@/pages/Login";
@@ -63,11 +64,7 @@ function SmartIndex() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) return <Navigate to="/dashboards" replace />;
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8 text-muted-foreground">
-      <p className="text-lg">Bienvenue — connectez-vous ou parcourez les contenus publics.</p>
-    </div>
-  );
+  return <LandingPage />;
 }
 
 const router = createBrowserRouter([

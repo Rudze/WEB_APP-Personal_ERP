@@ -39,14 +39,15 @@ enum Role {
 // ─── App Settings ─────────────────────────────────────────────────────────────
 
 model AppSettings {
-  id            String  @id @default("singleton")
-  appName       String  @default("Personal ERP")
-  logoUrl       String?
-  defaultTheme  String  @default("dark")
-  primaryColor  String  @default("#6366f1")
-  language      String  @default("fr")
-  modules       Json    @default("{\"dashboard\":true,\"wiki\":true,\"portfolio\":true}")
-  publicModules Json    @default("{\"wiki\":false,\"portfolio\":false}")
+  id              String  @id @default("singleton")
+  appName         String  @default("Personal ERP")
+  logoUrl         String?
+  defaultTheme    String  @default("dark")
+  primaryColor    String  @default("#6366f1")
+  language        String  @default("fr")
+  modules         Json    @default("{\"dashboard\":true,\"wiki\":true,\"portfolio\":true}")
+  publicModules   Json    @default("{\"wiki\":false,\"portfolio\":false}")
+  landingContent  Json    @default("{}")
 }
 
 // ─── Dashboards ───────────────────────────────────────────────────────────────
