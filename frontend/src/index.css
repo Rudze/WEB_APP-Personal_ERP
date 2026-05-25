@@ -227,9 +227,9 @@
 }
 
 /* ─── Callouts ──────────────────────────────────────────────── */
-.callout-note    { @apply bg-blue-500/8 border border-blue-500/25 rounded-xl p-4 text-blue-300; }
-.callout-warning { @apply bg-yellow-500/8 border border-yellow-500/25 rounded-xl p-4 text-yellow-300; }
-.callout-danger  { @apply bg-red-500/8 border border-red-500/25 rounded-xl p-4 text-red-300; }
+.callout-note    { @apply bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-blue-300; }
+.callout-warning { @apply bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-yellow-300; }
+.callout-danger  { @apply bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-300; }
 
 /* ─── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
