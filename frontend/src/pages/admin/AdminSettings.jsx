@@ -33,6 +33,7 @@ export function AdminSettings() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-settings"] });
+      qc.invalidateQueries({ queryKey: ["public-config"] });
       toast({ title: "Paramètres sauvegardés" });
     },
     onError: (e) => toast({ title: "Erreur", description: e.response?.data?.error, variant: "destructive" }),

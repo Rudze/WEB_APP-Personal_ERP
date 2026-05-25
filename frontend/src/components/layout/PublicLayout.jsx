@@ -1,6 +1,5 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { publicApi } from "@/lib/api";
+import { useSettings } from "@/context/SettingsContext";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,11 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function PublicLayout() {
   const navigate = useNavigate();
-
-  const { data: config } = useQuery({
-    queryKey: ["public-config"],
-    queryFn: () => publicApi.getConfig().then((r) => r.data),
-  });
+  const config = useSettings();
 
   const publicModules = config?.publicModules || {};
 
@@ -27,12 +22,21 @@ export function PublicLayout() {
     <div className="flex h-screen overflow-hidden bg-background">
       <aside className="w-64 border-r border-border flex flex-col shrink-0">
         <div className="flex items-center h-14 px-4 border-b border-border">
-          <span
-            className="font-semibold text-foreground cursor-pointer truncate"
-            onClick={() => navigate("/")}
-          >
-            {config?.appName || "Personal ERP"}
-          </span>
+          {config?.logoUrl ? (
+            <img
+              src={config.logoUrl}
+              alt={config.appName || "Logo"}
+              className="h-8 object-contain max-w-[140px] cursor-pointer"
+              onClick={() => navigate("/")}
+            />
+          ) : (
+            <span
+              className="font-semibold text-foreground cursor-pointer truncate"
+              onClick={() => navigate("/")}
+            >
+              {config?.appName || "Personal ERP"}
+            </span>
+          )}
         </div>
 
         <ScrollArea className="flex-1 py-2">

@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-rou
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { SettingsProvider } from "@/context/SettingsContext";
 import { Layout } from "@/components/layout/Layout";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { Login } from "@/pages/Login";
@@ -145,9 +146,11 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <SettingsProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </SettingsProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

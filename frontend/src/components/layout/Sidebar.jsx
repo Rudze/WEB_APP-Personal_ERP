@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useSettings } from "@/context/SettingsContext";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -27,6 +28,7 @@ export function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const { can } = usePermissions();
   const location = useLocation();
+  const { appName, logoUrl } = useSettings();
 
   return (
     <aside
@@ -38,7 +40,9 @@ export function Sidebar({ collapsed, onToggle }) {
       {/* Logo / header */}
       <div className="flex items-center justify-between h-14 px-3 border-b border-sidebar-border">
         {!collapsed && (
-          <span className="font-semibold text-sidebar-foreground truncate">Personal ERP</span>
+          logoUrl
+            ? <img src={logoUrl} alt={appName || "Logo"} className="h-8 object-contain max-w-[140px]" />
+            : <span className="font-semibold text-sidebar-foreground truncate">{appName || "Personal ERP"}</span>
         )}
         <Button
           variant="ghost"
