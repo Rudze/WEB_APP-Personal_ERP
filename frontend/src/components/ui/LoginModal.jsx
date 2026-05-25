@@ -34,7 +34,7 @@ export function LoginModal({ open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm p-0 overflow-hidden border-0 bg-transparent shadow-none">
-        <div className="glass-card rounded-2xl p-8 relative">
+        <div className="card-surface rounded-2xl p-8 relative" style={{ background: "hsl(240 2% 12%)" }}>
           {/* Glow accent */}
           <div
             className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full pointer-events-none"

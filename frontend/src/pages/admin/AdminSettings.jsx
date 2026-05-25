@@ -58,7 +58,7 @@ function GeneralTab({ settings }) {
   return (
     <div className="space-y-6">
       {/* Général */}
-      <section className="glass-card rounded-2xl p-6 space-y-5">
+      <section className="card-surface p-6 space-y-5">
         <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Général</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
@@ -131,7 +131,7 @@ function GeneralTab({ settings }) {
       </section>
 
       {/* Modules actifs */}
-      <section className="glass-card rounded-2xl p-6 space-y-4">
+      <section className="card-surface p-6 space-y-4">
         <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Modules actifs</h3>
         <div className="space-y-3">
           {Object.entries(form.modules || {}).map(([key, enabled]) => (
@@ -144,7 +144,7 @@ function GeneralTab({ settings }) {
       </section>
 
       {/* Accès public */}
-      <section className="glass-card rounded-2xl p-6 space-y-4">
+      <section className="card-surface p-6 space-y-4">
         <div>
           <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Accès public</h3>
           <p className="text-xs text-muted-foreground mt-1">Modules visibles pour les visiteurs non connectés.</p>
@@ -197,7 +197,7 @@ function LandingTab() {
   return (
     <div className="space-y-6">
       {/* Hero config */}
-      <section className="glass-card rounded-2xl p-6 space-y-4">
+      <section className="card-surface p-6 space-y-4">
         <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Section Hero</h3>
         <div className="space-y-3">
           <div className="space-y-1.5">
@@ -228,7 +228,7 @@ function LandingTab() {
       </section>
 
       {/* Sections Markdown */}
-      <section className="glass-card rounded-2xl p-6 space-y-4">
+      <section className="card-surface p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Sections personnalisées</h3>

@@ -31,9 +31,11 @@ export function Sidebar({ collapsed, onToggle }) {
     <aside
       className={cn(
         "flex flex-col h-full transition-all duration-300 ease-in-out relative",
-        "backdrop-blur-2xl bg-sidebar/95 border-r border-sidebar-border/50",
+        "border-r border-sidebar-border",
+        "bg-sidebar",
         collapsed ? "w-[60px]" : "w-60"
       )}
+      style={{ backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
     >
       {/* Top gradient accent */}
       <div

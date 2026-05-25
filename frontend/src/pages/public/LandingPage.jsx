@@ -94,7 +94,7 @@ export function LandingPage() {
 
         <div className="relative z-10 max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8 text-xs font-medium text-muted-foreground">
+          <div className="inline-flex items-center gap-2 glass-panel rounded-full px-4 py-1.5 mb-8 text-xs font-medium text-muted-foreground">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Application ERP personnelle
           </div>
@@ -175,8 +175,7 @@ export function LandingPage() {
               <div
                 key={mod.title}
                 className={cn(
-                  "reveal feature-card glass-card rounded-2xl p-7 border border-border/40",
-                  mod.border,
+                  "reveal feature-card card-surface p-7",
                   `reveal-delay-${i + 1}`
                 )}
               >
@@ -211,7 +210,7 @@ export function LandingPage() {
       {/* ── CTA ── */}
       <section className="py-28 px-6">
         <div className="max-w-2xl mx-auto text-center reveal">
-          <div className="glass-card rounded-3xl p-12 gradient-border relative overflow-hidden">
+          <div className="card-surface rounded-2xl p-12 relative overflow-hidden">
             {/* Background glow */}
             <div
               className="absolute inset-0 pointer-events-none"

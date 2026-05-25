@@ -94,7 +94,7 @@ export function WikiLayout() {
       <div
         className={cn(
           "absolute left-0 top-0 h-full z-50 w-72 flex flex-col",
-          "bg-card/95 backdrop-blur-2xl border-r border-border/40 shadow-2xl",
+          "glass-panel shadow-2xl",
           "transition-transform duration-300 cubic-bezier(0.16,1,0.3,1)",
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         )}
