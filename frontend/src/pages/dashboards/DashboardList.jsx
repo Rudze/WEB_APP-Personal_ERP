@@ -9,8 +9,6 @@ import { useState } from "react";
 import { DashboardFormDialog } from "./DashboardFormDialog";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
-
 export function DashboardList() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -32,8 +30,6 @@ export function DashboardList() {
     },
     onError: (e) => toast({ title: "Erreur", description: e.response?.data?.error, variant: "destructive" }),
   });
-
-  useScrollReveal(dashboards.length);
 
   if (isLoading) {
     return (
@@ -91,7 +87,8 @@ export function DashboardList() {
           {dashboards.map((d, i) => (
             <div
               key={d.id}
-              className={cn("card-surface feature-card group cursor-pointer", `reveal reveal-delay-${Math.min(i + 1, 5)}`)}
+              className={cn("card-surface feature-card group cursor-pointer card-appear")}
+              style={{ animationDelay: `${Math.min(i, 4) * 0.07}s` }}
               onClick={() => navigate(`/dashboards/${d.slug}`)}
             >
               <div className="p-5">

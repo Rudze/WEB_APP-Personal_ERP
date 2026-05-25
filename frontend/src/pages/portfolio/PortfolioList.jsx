@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi, uploadApi } from "@/lib/api";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,6 @@ export function PortfolioList() {
   const { toast } = useToast();
   const [dialog, setDialog] = useState({ open: false, editing: null });
   const [filterCategory, setFilterCategory] = useState("");
-  useScrollReveal(`${filterCategory}|${filtered.length}`);
 
   const { data: portfolios = [], isLoading } = useQuery({
     queryKey: ["portfolios"],
@@ -121,10 +119,10 @@ export function PortfolioList() {
             <div
               key={p.id}
               className={cn(
-                "project-card card-surface feature-card group overflow-hidden",
-                `reveal reveal-delay-${Math.min(i + 1, 5)}`,
+                "project-card card-surface feature-card group overflow-hidden card-appear",
                 p.gitLink && (!p.gitLinkPrivate || user) ? "cursor-pointer" : "cursor-default"
               )}
+              style={{ animationDelay: `${Math.min(i, 4) * 0.07}s` }}
               onClick={() => {
                 if (!p.gitLink) return;
                 if (p.gitLinkPrivate && !user) return;
