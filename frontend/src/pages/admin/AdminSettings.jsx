@@ -27,8 +27,8 @@ function GeneralTab({ settings }) {
 
   const mutation = useMutation({
     mutationFn: (data) => {
-      const { appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules } = data;
-      return adminApi.updateSettings({ appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules });
+      const { appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules, navLayout, publicNavLayout } = data;
+      return adminApi.updateSettings({ appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules, navLayout, publicNavLayout });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-settings"] });
@@ -159,11 +159,83 @@ function GeneralTab({ settings }) {
         </div>
       </section>
 
+      {/* Navigation layout */}
+      <section className="card-surface p-6 space-y-5">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Mise en page de la navigation</h3>
+          <p className="text-xs text-muted-foreground mt-1">Choisissez l'orientation du menu pour chaque espace.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Interface admin</Label>
+            <NavLayoutPicker
+              value={form.navLayout || "vertical"}
+              onChange={(v) => setForm({ ...form, navLayout: v })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Espace visiteurs</Label>
+            <NavLayoutPicker
+              value={form.publicNavLayout || "horizontal"}
+              onChange={(v) => setForm({ ...form, publicNavLayout: v })}
+            />
+          </div>
+        </div>
+      </section>
+
       <Button onClick={() => mutation.mutate(form)} disabled={mutation.isPending} className="gap-2">
         {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
         <Save size={14} />
         Sauvegarder
       </Button>
+    </div>
+  );
+}
+
+/* ─── Nav layout picker ─────────────────────────────────────── */
+function NavLayoutPicker({ value, onChange }) {
+  const options = [
+    { v: "vertical",   label: "Vertical",    desc: "Barre latérale" },
+    { v: "horizontal", label: "Horizontal",  desc: "Barre du haut"  },
+  ];
+  return (
+    <div className="flex gap-2">
+      {options.map((opt) => {
+        const active = value === opt.v;
+        return (
+          <button
+            key={opt.v}
+            type="button"
+            onClick={() => onChange(opt.v)}
+            className="flex-1 flex flex-col items-center gap-1 px-3 py-3 rounded-xl text-xs font-medium transition-all duration-150 border"
+            style={{
+              background: active ? "hsl(var(--primary) / 0.1)" : "hsl(240,2%,10%)",
+              borderColor: active ? "hsl(var(--primary) / 0.5)" : "hsl(0,0%,20%)",
+              color: active ? "hsl(var(--primary))" : "hsl(0,0%,55%)",
+            }}
+          >
+            {/* Mini icon representing the layout */}
+            <div
+              className="w-10 h-7 rounded flex overflow-hidden gap-0.5"
+              style={{ background: "hsl(0,0%,15%)", padding: "3px" }}
+            >
+              {opt.v === "vertical" ? (
+                <>
+                  <div className="w-2 h-full rounded-sm" style={{ background: active ? "hsl(var(--primary) / 0.5)" : "hsl(0,0%,25%)" }} />
+                  <div className="flex-1 h-full rounded-sm" style={{ background: "hsl(0,0%,20%)" }} />
+                </>
+              ) : (
+                <div className="flex flex-col gap-0.5 w-full h-full">
+                  <div className="w-full rounded-sm" style={{ height: "35%", background: active ? "hsl(var(--primary) / 0.5)" : "hsl(0,0%,25%)" }} />
+                  <div className="flex-1 w-full rounded-sm" style={{ background: "hsl(0,0%,20%)" }} />
+                </div>
+              )}
+            </div>
+            <span>{opt.label}</span>
+            <span style={{ color: "hsl(0,0%,40%)", fontSize: "10px" }}>{opt.desc}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -3,8 +3,8 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useSettings } from "@/context/SettingsContext";
 import { Toaster } from "@/components/ui/toaster";
 import { LoginModal } from "@/components/ui/LoginModal";
+import { PublicSidebar } from "./PublicSidebar";
 import { BookOpen, Briefcase, GraduationCap, LogIn, Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const PublicContext = createContext({ openLogin: () => {} });
 export const usePublicContext = () => useContext(PublicContext);
@@ -16,6 +16,7 @@ export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const publicModules = config?.publicModules || {};
+  const publicNavLayout = config?.publicNavLayout || "horizontal";
 
   const navLinks = [
     publicModules.wiki      && { label: "Wiki",      icon: BookOpen,      path: "/wiki" },
@@ -23,11 +24,43 @@ export function PublicLayout() {
     publicModules.cv        && { label: "CV",         icon: GraduationCap, path: "/cv" },
   ].filter(Boolean);
 
+  /* ── Vertical (sidebar) layout ── */
+  if (publicNavLayout === "vertical") {
+    return (
+      <PublicContext.Provider value={{ openLogin: () => setLoginOpen(true) }}>
+        <div
+          className="flex h-screen overflow-hidden gap-3 p-3"
+          style={{ background: "hsl(0,0%,7%)" }}
+        >
+          <PublicSidebar publicModules={publicModules} onLoginClick={() => setLoginOpen(true)} />
+
+          <div
+            className="flex flex-col flex-1 min-w-0 overflow-hidden"
+            style={{
+              background: "hsl(240,2%,12%)",
+              border: "1px solid hsl(0,0%,22%)",
+              borderRadius: "20px",
+              boxShadow: "-4px 8px 24px hsla(0,0%,0%,0.25)",
+            }}
+          >
+            <div className="flex-1 min-h-0 overflow-auto">
+              <Outlet />
+            </div>
+          </div>
+
+          <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+          <Toaster />
+        </div>
+      </PublicContext.Provider>
+    );
+  }
+
+  /* ── Horizontal (top navbar) layout — default ── */
   return (
     <PublicContext.Provider value={{ openLogin: () => setLoginOpen(true) }}>
       <div className="flex flex-col h-screen overflow-hidden" style={{ background: "hsl(0,0%,7%)" }}>
 
-        {/* ── Navbar — exact portfolio style ── */}
+        {/* Navbar */}
         <nav
           className="sticky top-0 z-50 shrink-0"
           style={{
@@ -40,10 +73,7 @@ export function PublicLayout() {
         >
           <div className="max-w-6xl mx-auto h-14 flex items-center justify-between px-5">
             {/* Brand */}
-            <button
-              className="group flex items-center gap-2.5"
-              onClick={() => navigate("/")}
-            >
+            <button className="group flex items-center gap-2.5" onClick={() => navigate("/")}>
               {config?.logoUrl ? (
                 <img src={config.logoUrl} alt={config.appName} className="h-7 object-contain max-w-[120px]" />
               ) : (
@@ -75,7 +105,7 @@ export function PublicLayout() {
               </div>
             )}
 
-            {/* Login button — portfolio form-btn style */}
+            {/* Login + hamburger */}
             <div className="flex items-center gap-2">
               <button
                 className="relative hidden sm:flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-medium transition-all duration-200"
@@ -91,14 +121,11 @@ export function PublicLayout() {
                 <span
                   className="absolute inset-[1px] rounded-[10px] -z-[1] transition-all duration-200"
                   style={{ background: "var(--bg-gradient-jet)" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-gradient-color-2)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--bg-gradient-jet)"; }}
                 />
                 <LogIn size={12} />
                 Se connecter
               </button>
 
-              {/* Mobile hamburger */}
               <button
                 className="sm:hidden p-1.5 rounded-lg transition-colors"
                 style={{ color: "hsl(0,0%,60%)" }}
@@ -124,10 +151,7 @@ export function PublicLayout() {
                   key={path}
                   to={path}
                   onClick={() => setMenuOpen(false)}
-                  className={({ isActive }) => cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-                    isActive ? "" : "hover:bg-white/5"
-                  )}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-white/5"
                   style={({ isActive }) => ({
                     color: isActive ? "hsl(var(--primary))" : "hsl(0,0%,84%)",
                     fontWeight: isActive ? 500 : 400,
@@ -157,7 +181,7 @@ export function PublicLayout() {
           )}
         </nav>
 
-        {/* ── Content ── */}
+        {/* Content */}
         <div className="flex-1 min-h-0 overflow-auto">
           <Outlet />
         </div>

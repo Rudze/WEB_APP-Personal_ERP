@@ -23,6 +23,8 @@ router.get("/config", asyncHandler(async (_req, res) => {
     primaryColor: settings.primaryColor,
     defaultTheme: settings.defaultTheme,
     landingContent: settings.landingContent || {},
+    navLayout: settings.navLayout || "vertical",
+    publicNavLayout: settings.publicNavLayout || "horizontal",
     publicModules: {
       wiki: wikiCount > 0,
       portfolio: portfolioCount > 0,

@@ -14,6 +14,8 @@ const settingsSchema = z.object({
   language: z.string().optional(),
   modules: z.preprocess((v) => v ?? undefined, z.record(z.boolean()).optional()),
   publicModules: z.preprocess((v) => v ?? undefined, z.record(z.boolean()).optional()),
+  navLayout: z.enum(["vertical", "horizontal"]).optional(),
+  publicNavLayout: z.enum(["vertical", "horizontal"]).optional(),
 });
 
 export const getSettings = asyncHandler(async (_req, res) => {
@@ -26,11 +28,13 @@ export const getSettings = asyncHandler(async (_req, res) => {
 });
 
 export const updateSettings = asyncHandler(async (req, res) => {
-  const data = settingsSchema.parse(req.body);
+  const { appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules, navLayout, publicNavLayout } = settingsSchema.parse(req.body);
+  const data = { appName, logoUrl, defaultTheme, primaryColor, language, modules, publicModules, navLayout, publicNavLayout };
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
   const settings = await prisma.appSettings.upsert({
     where: { id: "singleton" },
-    update: data,
-    create: { id: "singleton", ...data },
+    update: clean,
+    create: { id: "singleton", ...clean },
   });
   res.json(settings);
 });

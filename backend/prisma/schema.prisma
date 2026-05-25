@@ -48,6 +48,8 @@ model AppSettings {
   modules         Json    @default("{\"dashboard\":true,\"wiki\":true,\"portfolio\":true}")
   publicModules   Json    @default("{\"wiki\":false,\"portfolio\":false}")
   landingContent  Json    @default("{}")
+  navLayout       String  @default("vertical")
+  publicNavLayout String  @default("horizontal")
 }
 
 // ─── Dashboards ───────────────────────────────────────────────────────────────
