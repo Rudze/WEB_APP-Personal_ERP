@@ -8,8 +8,8 @@ const settingsSchema = z.object({
   defaultTheme: z.enum(["dark", "light"]).optional(),
   primaryColor: z.string().optional(),
   language: z.string().optional(),
-  modules: z.record(z.boolean()).nullable().optional(),
-  publicModules: z.record(z.boolean()).nullable().optional(),
+  modules: z.preprocess((v) => v ?? undefined, z.record(z.boolean()).optional()),
+  publicModules: z.preprocess((v) => v ?? undefined, z.record(z.boolean()).optional()),
 });
 
 export const getSettings = asyncHandler(async (_req, res) => {
