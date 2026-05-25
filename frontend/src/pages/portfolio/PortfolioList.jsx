@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Loader2, Pencil, ExternalLink, ImagePlus, X, Briefcase } from "lucide-react";
+import { Plus, Trash2, Loader2, Pencil, ExternalLink, ImagePlus, X, Briefcase, Lock, LockOpen } from "lucide-react";
 import { slugify, formatDate, STATUS_LABELS, STATUS_COLORS } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ export function PortfolioList() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { isEditor, isAdmin } = usePermissions();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [dialog, setDialog] = useState({ open: false, editing: null });
   const [filterCategory, setFilterCategory] = useState("");
@@ -121,9 +123,13 @@ export function PortfolioList() {
               className={cn(
                 "project-card card-surface feature-card group overflow-hidden",
                 `reveal reveal-delay-${Math.min(i + 1, 5)}`,
-                p.gitLink ? "cursor-pointer" : "cursor-default"
+                p.gitLink && (!p.gitLinkPrivate || user) ? "cursor-pointer" : "cursor-default"
               )}
-              onClick={() => p.gitLink && window.open(p.gitLink, "_blank", "noreferrer")}
+              onClick={() => {
+                if (!p.gitLink) return;
+                if (p.gitLinkPrivate && !user) return;
+                window.open(p.gitLink, "_blank", "noreferrer");
+              }}
             >
               {/* Image with hover overlay */}
               {p.imageUrl ? (
@@ -135,8 +141,11 @@ export function PortfolioList() {
                   />
                   {p.gitLink && (
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="bg-primary/90 rounded-xl p-3 shadow-lg">
-                        <ExternalLink size={18} className="text-white" />
+                      <div className="rounded-xl p-3 shadow-lg" style={{ background: p.gitLinkPrivate && !user ? "hsl(0,0%,20%)" : "hsl(var(--primary) / 0.9)" }}>
+                        {p.gitLinkPrivate && !user
+                          ? <Lock size={18} className="text-white/60" />
+                          : <ExternalLink size={18} className="text-white" />
+                        }
                       </div>
                     </div>
                   )}
@@ -186,23 +195,17 @@ export function PortfolioList() {
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{p.description}</p>
                 )}
 
-                {/* Tags */}
-                {p.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {p.tags.slice(0, 4).map((t) => (
-                      <span key={t} className="px-2 py-0.5 bg-muted/60 rounded-md text-[10px] text-muted-foreground font-medium">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
                 {/* Footer */}
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30 text-xs text-muted-foreground">
                   {p.date ? <span>{formatDate(p.date)}</span> : <span />}
                   {p.gitLink && (
-                    <span className="flex items-center gap-1 text-primary/60">
-                      <ExternalLink size={10} /> Lien
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ color: p.gitLinkPrivate && !user ? "hsl(0,0%,40%)" : "hsl(var(--primary) / 0.7)" }}
+                      title={p.gitLinkPrivate ? "Lien privé — connexion requise" : "Lien disponible"}
+                    >
+                      {p.gitLinkPrivate && !user ? <Lock size={10} /> : <ExternalLink size={10} />}
+                      {p.gitLinkPrivate && !user ? "Privé" : "Lien"}
                     </span>
                   )}
                 </div>
@@ -230,8 +233,8 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
 
   const [form, setForm] = useState({
     title: "", slug: "", description: "", category: "", authorName: "",
-    date: "", status: "termine", imageUrl: "", gitLink: "",
-    tags: "", visibility: "viewer",
+    date: "", status: "termine", imageUrl: "", gitLink: "", gitLinkPrivate: false,
+    visibility: "viewer",
   });
 
   useEffect(() => {
@@ -246,11 +249,12 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
         status: editing.status,
         imageUrl: editing.imageUrl || "",
         gitLink: editing.gitLink || "",
+        gitLinkPrivate: editing.gitLinkPrivate || false,
         tags: editing.tags?.join(", ") || "",
         visibility: editing.visibility,
       });
     } else {
-      setForm({ title: "", slug: "", description: "", category: "", authorName: "", date: "", status: "termine", imageUrl: "", gitLink: "", tags: "", visibility: "viewer" });
+      setForm({ title: "", slug: "", description: "", category: "", authorName: "", date: "", status: "termine", imageUrl: "", gitLink: "", gitLinkPrivate: false, visibility: "viewer" });
     }
   }, [editing]);
 
@@ -277,7 +281,7 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
     e.preventDefault();
     onSave({
       ...form,
-      tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      tags: [],
       date: form.date || undefined,
     });
   }
@@ -350,11 +354,32 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Lien du projet (GitHub, portfolio, site…)</Label>
-            <Input value={form.gitLink} onChange={(e) => setForm({ ...form, gitLink: e.target.value })} placeholder="https://github.com/..." />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Tags (séparés par virgule)</Label>
-            <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="React, Node.js, Docker…" />
+            <div className="flex gap-2">
+              <Input
+                value={form.gitLink}
+                onChange={(e) => setForm({ ...form, gitLink: e.target.value })}
+                placeholder="https://github.com/..."
+                className="flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, gitLinkPrivate: !form.gitLinkPrivate })}
+                title={form.gitLinkPrivate ? "Lien privé — cliquer pour rendre public" : "Lien public — cliquer pour rendre privé"}
+                className="h-9 w-9 rounded-lg flex items-center justify-center border transition-all duration-150 shrink-0"
+                style={{
+                  background: form.gitLinkPrivate ? "hsl(var(--primary) / 0.1)" : "transparent",
+                  borderColor: form.gitLinkPrivate ? "hsl(var(--primary) / 0.4)" : "hsl(0,0%,25%)",
+                  color: form.gitLinkPrivate ? "hsl(var(--primary))" : "hsl(0,0%,50%)",
+                }}
+              >
+                {form.gitLinkPrivate ? <Lock size={14} /> : <LockOpen size={14} />}
+              </button>
+            </div>
+            {form.gitLink && (
+              <p className="text-[11px]" style={{ color: form.gitLinkPrivate ? "hsl(var(--primary) / 0.8)" : "hsl(0,0%,45%)" }}>
+                {form.gitLinkPrivate ? "🔒 Lien visible uniquement pour les utilisateurs connectés" : "🔓 Lien visible par tout le monde"}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Description</Label>

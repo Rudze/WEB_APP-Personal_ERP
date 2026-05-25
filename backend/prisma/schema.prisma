@@ -131,9 +131,10 @@ model Portfolio {
   status      EntryStatus @default(termine)
   imageUrl    String?
   webLink     String?
-  gitLink     String?
-  tags        Json        @default("[]")
-  visibility  Visibility  @default(viewer)
+  gitLink        String?
+  gitLinkPrivate Boolean @default(false)
+  tags           Json    @default("[]")
+  visibility     Visibility @default(viewer)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }

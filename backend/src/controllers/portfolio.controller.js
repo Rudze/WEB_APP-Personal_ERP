@@ -15,6 +15,7 @@ const portfolioSchema = z.object({
   imageUrl: z.string().nullable().optional(),
   webLink: z.string().nullable().optional(),
   gitLink: z.string().nullable().optional(),
+  gitLinkPrivate: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
   visibility: z.enum(["admin", "editor", "viewer", "public"]).default("viewer"),
 });
