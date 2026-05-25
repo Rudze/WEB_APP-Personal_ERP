@@ -22,7 +22,7 @@ export function PortfolioList() {
   const { toast } = useToast();
   const [dialog, setDialog] = useState({ open: false, editing: null });
   const [filterCategory, setFilterCategory] = useState("");
-  useScrollReveal();
+  useScrollReveal(filterCategory);
 
   const { data: portfolios = [], isLoading } = useQuery({
     queryKey: ["portfolios"],

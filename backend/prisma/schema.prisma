@@ -50,6 +50,8 @@ model AppSettings {
   landingContent  Json    @default("{}")
   navLayout       String  @default("vertical")
   publicNavLayout String  @default("horizontal")
+  navOrder        Json    @default("[\"dashboards\",\"wiki\",\"portfolio\",\"cv\"]")
+  customNavLinks  Json    @default("[]")
 }
 
 // ─── Dashboards ───────────────────────────────────────────────────────────────

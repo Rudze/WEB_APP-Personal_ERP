@@ -4,7 +4,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { Toaster } from "@/components/ui/toaster";
 import { LoginModal } from "@/components/ui/LoginModal";
 import { PublicSidebar } from "./PublicSidebar";
-import { BookOpen, Briefcase, GraduationCap, LogIn, Menu, X } from "lucide-react";
+import { BookOpen, Briefcase, GraduationCap, LogIn, Menu, X, ExternalLink } from "lucide-react";
 
 const PublicContext = createContext({ openLogin: () => {} });
 export const usePublicContext = () => useContext(PublicContext);
@@ -17,12 +17,17 @@ export function PublicLayout() {
 
   const publicModules = config?.publicModules || {};
   const publicNavLayout = config?.publicNavLayout || "horizontal";
+  const navOrder = config?.navOrder || ["wiki", "portfolio", "cv"];
+  const customNavLinks = config?.customNavLinks || [];
 
-  const navLinks = [
-    publicModules.wiki      && { label: "Wiki",      icon: BookOpen,      path: "/wiki" },
-    publicModules.portfolio && { label: "Portfolio",  icon: Briefcase,     path: "/portfolio" },
-    publicModules.cv        && { label: "CV",         icon: GraduationCap, path: "/cv" },
-  ].filter(Boolean);
+  const MODULE_META = {
+    wiki:      { label: "Wiki",      icon: BookOpen,      path: "/wiki" },
+    portfolio: { label: "Portfolio", icon: Briefcase,     path: "/portfolio" },
+    cv:        { label: "CV",        icon: GraduationCap, path: "/cv" },
+  };
+  const navLinks = navOrder
+    .filter((id) => MODULE_META[id] && publicModules[id])
+    .map((id) => MODULE_META[id]);
 
   /* ── Vertical (sidebar) layout ── */
   if (publicNavLayout === "vertical") {
@@ -105,6 +110,23 @@ export function PublicLayout() {
               </div>
             )}
 
+            {/* Custom links (desktop) */}
+            {customNavLinks.map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                style={{ color: "hsl(0,0%,60%)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "hsl(0,0%,84%)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "hsl(0,0%,60%)"; }}
+              >
+                <ExternalLink size={12} />
+                {link.label}
+              </a>
+            ))}
+
             {/* Login + hamburger */}
             <div className="flex items-center gap-2">
               <button
@@ -160,6 +182,20 @@ export function PublicLayout() {
                   <Icon size={15} />
                   {label}
                 </NavLink>
+              ))}
+              {customNavLinks.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-white/5"
+                  style={{ color: "hsl(0,0%,60%)" }}
+                >
+                  <ExternalLink size={15} />
+                  {link.label}
+                </a>
               ))}
               <button
                 className="relative w-full flex items-center justify-center gap-2 mt-3 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"

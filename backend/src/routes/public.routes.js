@@ -25,6 +25,8 @@ router.get("/config", asyncHandler(async (_req, res) => {
     landingContent: settings.landingContent || {},
     navLayout: settings.navLayout || "vertical",
     publicNavLayout: settings.publicNavLayout || "horizontal",
+    navOrder: settings.navOrder || ["dashboards", "wiki", "portfolio", "cv"],
+    customNavLinks: settings.customNavLinks || [],
     publicModules: {
       wiki: wikiCount > 0,
       portfolio: portfolioCount > 0,

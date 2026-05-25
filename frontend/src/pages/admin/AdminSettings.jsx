@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImagePlus, Loader2, Save, Settings, X, Globe } from "lucide-react";
+import { ImagePlus, Loader2, Save, Settings, X, Globe, Navigation, ChevronUp, ChevronDown, Plus, Link2 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
@@ -323,6 +323,167 @@ function LandingTab() {
   );
 }
 
+/* ─── Navigation tab ────────────────────────────────────────── */
+const DEFAULT_ORDER = ["dashboards", "wiki", "portfolio", "cv"];
+const NAV_LABELS = { dashboards: "Dashboards", wiki: "Wiki", portfolio: "Portfolio", cv: "CV" };
+
+function NavTab({ settings }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [navOrder, setNavOrder] = useState(DEFAULT_ORDER);
+  const [customLinks, setCustomLinks] = useState([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+
+  useEffect(() => {
+    if (settings) {
+      setNavOrder(settings.navOrder?.length ? settings.navOrder : DEFAULT_ORDER);
+      setCustomLinks(settings.customNavLinks || []);
+    }
+  }, [settings]);
+
+  const mutation = useMutation({
+    mutationFn: () => adminApi.updateSettings({ navOrder, customNavLinks: customLinks }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-settings"] });
+      qc.invalidateQueries({ queryKey: ["public-config"] });
+      toast({ title: "Navigation sauvegardée" });
+    },
+    onError: (e) => toast({ title: "Erreur", description: e.response?.data?.error, variant: "destructive" }),
+  });
+
+  function move(i, dir) {
+    const o = [...navOrder];
+    const j = i + dir;
+    if (j < 0 || j >= o.length) return;
+    [o[i], o[j]] = [o[j], o[i]];
+    setNavOrder(o);
+  }
+
+  function addLink() {
+    const label = newLabel.trim();
+    const url = newUrl.trim();
+    if (!label || !url) return;
+    setCustomLinks([...customLinks, { label, url }]);
+    setNewLabel("");
+    setNewUrl("");
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Order */}
+      <section className="card-surface p-6 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Ordre des modules</h3>
+          <p className="text-xs text-muted-foreground mt-1">Utilisez les flèches pour réordonner les liens dans la barre de navigation.</p>
+        </div>
+        <div className="space-y-2">
+          {navOrder.map((id, i) => (
+            <div
+              key={id}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl"
+              style={{ background: "hsl(240,2%,10%)", border: "1px solid hsl(0,0%,20%)" }}
+            >
+              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "hsl(0,0%,35%)" }} />
+              <span className="flex-1 text-sm" style={{ color: "hsl(0,0%,84%)" }}>
+                {NAV_LABELS[id] || id}
+              </span>
+              <div className="flex gap-0.5">
+                {[[-1, ChevronUp], [1, ChevronDown]].map(([dir, Icon]) => (
+                  <button
+                    key={dir}
+                    type="button"
+                    onClick={() => move(i, dir)}
+                    disabled={dir === -1 ? i === 0 : i === navOrder.length - 1}
+                    className="p-1.5 rounded-lg transition-colors disabled:opacity-25"
+                    style={{ color: "hsl(0,0%,55%)" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "hsl(0,0%,18%)"; e.currentTarget.style.color = "hsl(0,0%,84%)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "hsl(0,0%,55%)"; }}
+                  >
+                    <Icon size={13} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Custom links */}
+      <section className="card-surface p-6 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Liens personnalisés</h3>
+          <p className="text-xs text-muted-foreground mt-1">Boutons supplémentaires ajoutés dans la barre de navigation (ouverts dans un nouvel onglet).</p>
+        </div>
+
+        {customLinks.length > 0 && (
+          <div className="space-y-2">
+            {customLinks.map((link, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                style={{ background: "hsl(240,2%,10%)", border: "1px solid hsl(0,0%,20%)" }}
+              >
+                <Link2 size={13} style={{ color: "hsl(var(--primary))", flexShrink: 0 }} />
+                <span className="text-sm font-medium" style={{ color: "hsl(0,0%,84%)" }}>{link.label}</span>
+                <span className="text-xs flex-1 truncate" style={{ color: "hsl(0,0%,40%)" }}>{link.url}</span>
+                <button
+                  type="button"
+                  onClick={() => setCustomLinks(customLinks.filter((_, j) => j !== i))}
+                  className="p-1.5 rounded-lg transition-colors shrink-0"
+                  style={{ color: "hsl(0,0%,40%)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "hsl(var(--destructive))"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "hsl(0,0%,40%)"; }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2 items-end pt-1">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <Label className="text-xs text-muted-foreground">Libellé</Label>
+            <Input
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Mon site"
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <Label className="text-xs text-muted-foreground">URL</Label>
+            <Input
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              placeholder="https://..."
+              className="h-8 text-sm"
+              onKeyDown={(e) => e.key === "Enter" && addLink()}
+            />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 shrink-0"
+            onClick={addLink}
+            disabled={!newLabel.trim() || !newUrl.trim()}
+          >
+            <Plus size={13} /> Ajouter
+          </Button>
+        </div>
+      </section>
+
+      <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="gap-2">
+        {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
+        <Save size={14} />
+        Sauvegarder la navigation
+      </Button>
+    </div>
+  );
+}
+
 /* ─── Main component ────────────────────────────────────────── */
 export function AdminSettings() {
   const { data: settings, isLoading } = useQuery({
@@ -347,6 +508,10 @@ export function AdminSettings() {
             <Settings size={13} />
             Général
           </TabsTrigger>
+          <TabsTrigger value="navigation" className="gap-1.5 text-xs">
+            <Navigation size={13} />
+            Navigation
+          </TabsTrigger>
           <TabsTrigger value="landing" className="gap-1.5 text-xs">
             <Globe size={13} />
             Page d'accueil
@@ -355,6 +520,10 @@ export function AdminSettings() {
 
         <TabsContent value="general">
           <GeneralTab settings={settings} />
+        </TabsContent>
+
+        <TabsContent value="navigation">
+          <NavTab settings={settings} />
         </TabsContent>
 
         <TabsContent value="landing">

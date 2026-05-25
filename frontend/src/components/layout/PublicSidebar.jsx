@@ -1,17 +1,19 @@
-import { NavLink } from "react-router-dom";
-import { BookOpen, Briefcase, GraduationCap, LogIn } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { BookOpen, Briefcase, GraduationCap, LogIn, ExternalLink } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
-import { useNavigate } from "react-router-dom";
+
+const MODULE_META = {
+  wiki:      { label: "Wiki",     icon: BookOpen,      path: "/wiki" },
+  portfolio: { label: "Portfolio", icon: Briefcase,    path: "/portfolio" },
+  cv:        { label: "CV",       icon: GraduationCap, path: "/cv" },
+};
 
 export function PublicSidebar({ publicModules, onLoginClick }) {
-  const { appName, logoUrl } = useSettings();
+  const { appName, logoUrl, navOrder = [], customNavLinks = [] } = useSettings();
   const navigate = useNavigate();
 
-  const navLinks = [
-    publicModules.wiki      && { label: "Wiki",      icon: BookOpen,      path: "/wiki" },
-    publicModules.portfolio && { label: "Portfolio",  icon: Briefcase,     path: "/portfolio" },
-    publicModules.cv        && { label: "CV",         icon: GraduationCap, path: "/cv" },
-  ].filter(Boolean);
+  const order = navOrder.filter((id) => MODULE_META[id] && publicModules[id]);
+  const navLinks = order.map((id) => MODULE_META[id]);
 
   return (
     <aside
@@ -57,6 +59,21 @@ export function PublicSidebar({ publicModules, onLoginClick }) {
             <Icon size={15} className="shrink-0" />
             <span className="truncate">{label}</span>
           </NavLink>
+        ))}
+        {customNavLinks.map((link) => (
+          <a
+            key={link.url}
+            href={link.url}
+            target="_blank"
+            rel="noreferrer"
+            className="sidebar-link flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-all duration-150"
+            style={{ color: "hsl(0,0%,60%)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "hsl(0,0%,84%)"; e.currentTarget.style.background = "hsl(0,0%,18%)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "hsl(0,0%,60%)"; e.currentTarget.style.background = "transparent"; }}
+          >
+            <ExternalLink size={15} className="shrink-0" />
+            <span className="truncate">{link.label}</span>
+          </a>
         ))}
       </nav>
 
