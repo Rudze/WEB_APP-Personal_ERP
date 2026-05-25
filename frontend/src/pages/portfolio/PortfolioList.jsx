@@ -3,17 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi, uploadApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Loader2, Pencil, ExternalLink, Github, ImagePlus, X } from "lucide-react";
+import { Plus, Trash2, Loader2, Pencil, ExternalLink, Github, ImagePlus, X, Eye, Briefcase } from "lucide-react";
 import { slugify, formatDate, STATUS_LABELS, STATUS_COLORS } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/useToast";
+import { cn } from "@/lib/utils";
 
 export function PortfolioList() {
   const qc = useQueryClient();
@@ -30,9 +29,7 @@ export function PortfolioList() {
 
   const saveMutation = useMutation({
     mutationFn: (data) =>
-      dialog.editing
-        ? portfolioApi.update(dialog.editing.id, data)
-        : portfolioApi.create(data),
+      dialog.editing ? portfolioApi.update(dialog.editing.id, data) : portfolioApi.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["portfolios"] });
       toast({ title: dialog.editing ? "Projet mis à jour" : "Projet créé" });
@@ -53,125 +50,167 @@ export function PortfolioList() {
   const categories = [...new Set(portfolios.map((p) => p.category).filter(Boolean))];
   const filtered = filterCategory ? portfolios.filter((p) => p.category === filterCategory) : portfolios;
 
-  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
+  if (isLoading) return (
+    <div className="flex justify-center py-20">
+      <Loader2 className="animate-spin text-muted-foreground" />
+    </div>
+  );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Portfolio</h2>
+    <div className="p-6 max-w-6xl mx-auto space-y-8 fade-in">
+      {/* Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight page-header-title gradient-text-portfolio">
+            Portfolio
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2">{filtered.length} projet{filtered.length !== 1 ? "s" : ""}</p>
+        </div>
         {isEditor && (
-          <Button size="sm" onClick={() => setDialog({ open: true, editing: null })}>
-            <Plus size={16} /> Nouveau projet
+          <Button size="sm" className="gap-1.5 glow-primary-sm" onClick={() => setDialog({ open: true, editing: null })}>
+            <Plus size={14} /> Nouveau projet
           </Button>
         )}
       </div>
 
-      {/* Category filter */}
+      {/* Filter pills */}
       {categories.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilterCategory("")}
-            className={`px-3 py-1 rounded-full text-sm border transition-colors ${!filterCategory ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}
-          >
-            Tous
-          </button>
-          {categories.map((cat) => (
+          {["", ...categories].map((cat) => (
             <button
-              key={cat}
-              onClick={() => setFilterCategory(cat === filterCategory ? "" : cat)}
-              className={`px-3 py-1 rounded-full text-sm border transition-colors ${filterCategory === cat ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}
+              key={cat || "_all"}
+              onClick={() => setFilterCategory(cat)}
+              className={cn(
+                "filter-pill",
+                (!cat && !filterCategory) || filterCategory === cat
+                  ? "filter-pill-active"
+                  : "filter-pill-inactive"
+              )}
             >
-              {cat}
+              {cat || "Tous"}
             </button>
           ))}
         </div>
       )}
 
+      {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <p>{isEditor ? 'Aucun projet. Cliquez sur "Nouveau projet" pour commencer.' : "Aucun projet disponible."}</p>
+        <div className="card-surface empty-state">
+          <div className="icon-box-erp w-16 h-16">
+            <Briefcase size={26} className="text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground/90">Aucun projet</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isEditor ? 'Cliquez sur "Nouveau projet" pour commencer.' : "Aucun projet disponible."}
+            </p>
+          </div>
+          {isEditor && (
+            <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 hover:bg-primary/5" onClick={() => setDialog({ open: true, editing: null })}>
+              <Plus size={14} /> Nouveau projet
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((p) => (
-            <Card
+          {filtered.map((p, i) => (
+            <div
               key={p.id}
-              className="group cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
+              className={cn("project-card card-surface feature-card group cursor-pointer overflow-hidden", `reveal reveal-delay-${Math.min(i + 1, 5)}`)}
               onClick={() => navigate(`/portfolio/${p.slug}`)}
             >
-              {p.imageUrl && (
-                <div className="h-40 overflow-hidden bg-muted">
+              {/* Image with hover overlay */}
+              {p.imageUrl ? (
+                <div className="project-img-wrap relative h-44 overflow-hidden rounded-t-[13px]">
                   <img
                     src={p.imageUrl}
                     alt={p.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover transition-transform duration-500"
                   />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-primary/90 rounded-xl p-3 shadow-lg">
+                      <Eye size={18} className="text-white" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-28 rounded-t-[13px] flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 border-b border-border/20">
+                  <Briefcase size={28} className="text-primary/40" />
                 </div>
               )}
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1 min-w-0">
-                    {p.category && (
-                      <span className="text-xs text-primary font-medium">{p.category}</span>
-                    )}
-                    <CardTitle className="text-base leading-tight">{p.title}</CardTitle>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[p.status]}`}>
+
+              <div className="p-5">
+                {/* Category + edit actions */}
+                <div className="flex items-center justify-between mb-1.5">
+                  {p.category && (
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">{p.category}</span>
+                  )}
+                  <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUS_COLORS[p.status]}`}>
                       {STATUS_LABELS[p.status]}
                     </span>
                     {isEditor && (
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-7 w-7"
-                          onClick={() => setDialog({ open: true, editing: p })}>
-                          <Pencil size={12} />
-                        </Button>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                        <button
+                          className="p-1 rounded hover:bg-white/5 text-muted-foreground hover:text-primary transition-colors"
+                          onClick={() => setDialog({ open: true, editing: p })}
+                        >
+                          <Pencil size={11} />
+                        </button>
                         {isAdmin && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                            onClick={() => { if (confirm("Supprimer ce projet ?")) deleteMutation.mutate(p.id); }}>
-                            <Trash2 size={12} />
-                          </Button>
+                          <button
+                            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                            onClick={() => { if (confirm("Supprimer ce projet ?")) deleteMutation.mutate(p.id); }}
+                          >
+                            <Trash2 size={11} />
+                          </button>
                         )}
                       </div>
                     )}
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
+
+                <h3 className="font-semibold text-foreground/90 group-hover:text-primary transition-colors leading-snug mb-1.5">
+                  {p.title}
+                </h3>
+
                 {p.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{p.description}</p>
                 )}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  {p.authorName && <span>{p.authorName}</span>}
-                  {p.date && <span>{formatDate(p.date)}</span>}
-                </div>
+
+                {/* Tags */}
                 {p.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mt-3">
                     {p.tags.slice(0, 4).map((t) => (
-                      <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+                      <span key={t} className="px-2 py-0.5 bg-muted/60 rounded-md text-[10px] text-muted-foreground font-medium">
+                        {t}
+                      </span>
                     ))}
                   </div>
                 )}
-                {(p.webLink || p.gitLink) && (
-                  <div className="flex gap-3 pt-1">
+
+                {/* Footer */}
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30 text-xs text-muted-foreground">
+                  {p.date ? <span>{formatDate(p.date)}</span> : <span />}
+                  <div className="flex gap-3">
                     {p.webLink && (
                       <a href={p.webLink} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                        className="flex items-center gap-1 text-primary hover:underline"
                         onClick={(e) => e.stopPropagation()}>
-                        <ExternalLink size={11} /> Démo
+                        <ExternalLink size={10} /> Démo
                       </a>
                     )}
                     {p.gitLink && (
                       <a href={p.gitLink} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
                         onClick={(e) => e.stopPropagation()}>
-                        <Github size={11} /> Code
+                        <Github size={10} /> Code
                       </a>
                     )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -300,46 +339,17 @@ function PortfolioFormDialog({ open, editing, onOpenChange, onSave, isPending })
           <div className="space-y-1.5">
             <Label className="text-xs">Image d'illustration</Label>
             <div className="flex gap-2">
-              <Input
-                value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                placeholder="URL ou cliquez sur Importer"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
-                Importer
+              <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="URL ou cliquez sur Importer" className="flex-1" />
+              <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />} Importer
               </Button>
               {form.imageUrl && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setForm({ ...form, imageUrl: "" })}
-                >
-                  <X size={14} />
-                </Button>
+                <Button type="button" variant="ghost" size="icon" onClick={() => setForm({ ...form, imageUrl: "" })}><X size={14} /></Button>
               )}
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageUpload}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             {form.imageUrl && (
-              <img
-                src={form.imageUrl}
-                alt="Aperçu"
-                className="mt-2 h-28 w-full object-cover rounded-md border border-border"
-              />
+              <img src={form.imageUrl} alt="Aperçu" className="mt-2 h-28 w-full object-cover rounded-lg border border-border" />
             )}
           </div>
           <div className="grid grid-cols-2 gap-3">

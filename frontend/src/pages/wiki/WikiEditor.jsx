@@ -117,55 +117,44 @@ export function WikiEditor() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 bg-background/60 backdrop-blur-sm shrink-0">
         <Input
           value={form.title}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Titre de la page"
-          className="text-lg font-semibold border-0 shadow-none bg-transparent px-0 focus-visible:ring-0 h-auto"
+          className="text-base font-semibold border-0 shadow-none bg-transparent px-0 focus-visible:ring-0 h-auto text-foreground/90"
           required
         />
-        <div className="flex gap-2 shrink-0">
-          <Button type="button" variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <X size={14} /> Annuler
+        <div className="flex gap-1.5 shrink-0">
+          <Button type="button" variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground" onClick={() => navigate(-1)}>
+            <X size={13} /> Annuler
           </Button>
           {!isNew && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(`/wiki/${slug}/versions`)}
-            >
-              <History size={14} /> Historique
+            <Button type="button" variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground" onClick={() => navigate(`/wiki/${slug}/versions`)}>
+              <History size={13} /> Historique
             </Button>
           )}
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-            title="Insérer une image"
           >
-            {uploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
+            {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImagePlus size={13} />}
             Image
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageUpload}
-          />
-          <Button type="submit" size="sm" disabled={mutation.isPending}>
-            {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
-            <Save size={14} /> Sauvegarder
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+          <Button type="submit" size="sm" className="gap-1.5 glow-primary-sm" disabled={mutation.isPending}>
+            {mutation.isPending && <Loader2 size={13} className="animate-spin" />}
+            <Save size={13} /> Sauvegarder
           </Button>
         </div>
       </div>
 
       {/* Metadata */}
-      <div className="flex gap-4 px-4 py-2 border-b border-border text-sm shrink-0">
+      <div className="flex gap-4 px-4 py-2 border-b border-border/30 text-sm shrink-0 bg-background/40">
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">Slug</Label>
           <Input
@@ -216,10 +205,10 @@ export function WikiEditor() {
 
       {/* Editor / Preview */}
       <Tabs defaultValue="split" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="mx-4 mt-2 w-fit">
-          <TabsTrigger value="editor">Éditeur</TabsTrigger>
-          <TabsTrigger value="split">Split</TabsTrigger>
-          <TabsTrigger value="preview">Aperçu</TabsTrigger>
+        <TabsList className="mx-4 mt-2 w-fit bg-muted/40 border border-border/40">
+          <TabsTrigger value="editor" className="text-xs">Éditeur</TabsTrigger>
+          <TabsTrigger value="split" className="text-xs">Split</TabsTrigger>
+          <TabsTrigger value="preview" className="text-xs">Aperçu</TabsTrigger>
         </TabsList>
         <TabsContent value="editor" className="flex-1 min-h-0 mt-0">
           <CodeMirror
@@ -244,14 +233,14 @@ export function WikiEditor() {
               className="h-full text-sm"
             />
           </div>
-          <div className="flex-1 min-w-0 overflow-auto p-4">
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="flex-1 min-w-0 overflow-auto p-5">
+            <div className="prose-erp">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content}</ReactMarkdown>
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="preview" className="flex-1 min-h-0 mt-0 overflow-auto p-4">
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+        <TabsContent value="preview" className="flex-1 min-h-0 mt-0 overflow-auto p-5">
+          <div className="prose-erp max-w-3xl mx-auto">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content}</ReactMarkdown>
           </div>
         </TabsContent>

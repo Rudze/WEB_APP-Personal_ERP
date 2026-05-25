@@ -5,19 +5,17 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Loader2, Users } from "lucide-react";
 import { formatDate, ROLE_LABELS } from "@/lib/utils";
 import { useToast } from "@/hooks/useToast";
 
 const ROLE_COLORS = {
-  admin: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-  editor: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  viewer: "bg-gray-500/20 text-gray-300 border-gray-500/30",
+  admin:  "bg-purple-500/15 text-purple-300 border-purple-500/25",
+  editor: "bg-blue-500/15 text-blue-300 border-blue-500/25",
+  viewer: "bg-muted text-muted-foreground border-border/40",
 };
 
 export function UsersManagement() {
@@ -88,78 +86,92 @@ export function UsersManagement() {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users size={20} />
-          <h2 className="text-xl font-semibold">Gestion des utilisateurs</h2>
+    <div className="p-6 max-w-4xl mx-auto space-y-8 fade-in">
+      {/* Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight page-header-title gradient-text-portfolio">
+            Utilisateurs
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            {users.length} compte{users.length !== 1 ? "s" : ""} enregistré{users.length !== 1 ? "s" : ""}
+          </p>
         </div>
-        <Button onClick={openCreate} size="sm">
-          <Plus size={16} /> Nouvel utilisateur
+        <Button size="sm" className="gap-1.5 glow-primary-sm" onClick={openCreate}>
+          <Plus size={14} /> Nouvel utilisateur
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="animate-spin" />
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Nom</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Rôle</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Statut</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Créé le</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                    <td className="px-4 py-3 font-medium">{user.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${ROLE_COLORS[user.role]}`}>
-                        {ROLE_LABELS[user.role]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs ${user.active ? "text-green-400" : "text-muted-foreground"}`}>
-                        {user.active ? "Actif" : "Inactif"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(user.createdAt)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 justify-end">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(user)}>
-                          <Pencil size={13} />
-                        </Button>
-                        {user.id !== me?.id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => {
-                              if (confirm(`Supprimer ${user.name} ?`)) deleteMutation.mutate(user.id);
-                            }}
-                          >
-                            <Trash2 size={13} />
-                          </Button>
-                        )}
+      {/* Table */}
+      <div className="card-surface overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <table className="table-erp">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Créé le</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+                        {user.name?.[0]?.toUpperCase() || "?"}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </CardContent>
-      </Card>
+                      <span className="font-medium text-foreground/90">{user.name}</span>
+                    </div>
+                  </td>
+                  <td className="text-muted-foreground">{user.email}</td>
+                  <td>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${ROLE_COLORS[user.role]}`}>
+                      {ROLE_LABELS[user.role]}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`flex items-center gap-1.5 text-xs font-medium ${user.active ? "text-green-400" : "text-muted-foreground"}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${user.active ? "bg-green-400" : "bg-muted-foreground"}`} />
+                      {user.active ? "Actif" : "Inactif"}
+                    </span>
+                  </td>
+                  <td className="text-muted-foreground text-xs">{formatDate(user.createdAt)}</td>
+                  <td>
+                    <div className="flex gap-1 justify-end">
+                      <button
+                        className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-primary transition-colors"
+                        onClick={() => openEdit(user)}
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      {user.id !== me?.id && (
+                        <button
+                          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={() => {
+                            if (confirm(`Supprimer ${user.name} ?`)) deleteMutation.mutate(user.id);
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
+      {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -196,11 +208,7 @@ export function UsersManagement() {
               </Select>
             </div>
             <div className="flex items-center gap-3">
-              <Switch
-                checked={form.active}
-                onCheckedChange={(v) => setForm({ ...form, active: v })}
-                id="active"
-              />
+              <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} id="active" />
               <Label htmlFor="active">Compte actif</Label>
             </div>
             <DialogFooter>

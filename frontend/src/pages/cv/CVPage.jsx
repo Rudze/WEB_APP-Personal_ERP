@@ -2,19 +2,18 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cvApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   Plus, Pencil, Trash2, Loader2, ExternalLink, X, Zap,
-  GraduationCap, MapPin, Calendar, Mail, Phone,
+  GraduationCap, MapPin, Calendar, Mail, Phone, User,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/useToast";
+import { cn } from "@/lib/utils";
 
 function formatDateRange(startDate, endDate, current) {
   const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR", { month: "short", year: "numeric" }) : null;
@@ -25,8 +24,6 @@ function formatDateRange(startDate, endDate, current) {
   if (!end) return start;
   return `${start} – ${end}`;
 }
-
-// ─── Main page ────────────────────────────────────────────────────────────────
 
 export function CVPage() {
   const qc = useQueryClient();
@@ -48,7 +45,11 @@ export function CVPage() {
     },
   });
 
-  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
+  if (isLoading) return (
+    <div className="flex justify-center py-20">
+      <Loader2 className="animate-spin text-muted-foreground" />
+    </div>
+  );
 
   const profile = data?.profile;
   const formations = data?.formations || [];
@@ -56,90 +57,114 @@ export function CVPage() {
   const hasProfile = !!(profile?.name);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8">
+    <div className="p-6 max-w-4xl mx-auto space-y-8 fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <GraduationCap size={22} /> CV / Dossier technique
-        </h1>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight page-header-title gradient-text-portfolio">
+            Curriculum Vitae
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2">Profil et formations</p>
+        </div>
         {isEditor && (
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setProfileDialog(true)}>
-              <Pencil size={14} /> {hasProfile ? "Modifier le profil" : "Configurer le profil"}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-border/50 hover:border-primary/40 hover:bg-primary/5"
+              onClick={() => setProfileDialog(true)}
+            >
+              <Pencil size={13} /> {hasProfile ? "Modifier le profil" : "Configurer le profil"}
             </Button>
-            <Button size="sm" onClick={() => setFormationDialog({ open: true, editing: null })}>
-              <Plus size={14} /> Ajouter une formation
+            <Button size="sm" className="gap-1.5 glow-primary-sm" onClick={() => setFormationDialog({ open: true, editing: null })}>
+              <Plus size={13} /> Formation
             </Button>
           </div>
         )}
       </div>
 
-      {/* Profile */}
+      {/* Profile card */}
       {hasProfile && (
-        <div className="flex flex-col sm:flex-row gap-6 items-start border border-border rounded-xl p-6">
-          {profile.avatar && (
-            <img
-              src={profile.avatar}
-              alt={profile.name}
-              className="w-24 h-24 rounded-full object-cover border-2 border-border shrink-0"
-            />
-          )}
-          <div className="flex-1 space-y-2 min-w-0">
-            <div>
-              <h2 className="text-2xl font-bold">{profile.name}</h2>
-              {profile.title && <p className="text-lg text-primary font-medium">{profile.title}</p>}
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              {profile.email && (
-                <span className="flex items-center gap-1"><Mail size={13} /> {profile.email}</span>
-              )}
-              {profile.phone && (
-                <span className="flex items-center gap-1"><Phone size={13} /> {profile.phone}</span>
-              )}
-              {profile.location && (
-                <span className="flex items-center gap-1"><MapPin size={13} /> {profile.location}</span>
-              )}
-            </div>
-            {profile.bio && (
-              <p className="text-muted-foreground leading-relaxed text-sm">{profile.bio}</p>
-            )}
-            {profile.links?.length > 0 && (
-              <div className="flex flex-wrap gap-3">
-                {profile.links.map((l, i) => (
-                  <a key={i} href={l.url} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1 text-sm text-primary hover:underline">
-                    <ExternalLink size={12} /> {l.label}
-                  </a>
-                ))}
+        <div className="card-surface p-6">
+          <div className="flex flex-col sm:flex-row gap-6 items-start">
+            {profile.avatar ? (
+              <div className="shrink-0">
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="w-24 h-24 rounded-2xl object-cover border-2 border-primary/25 shadow-lg"
+                  style={{ boxShadow: "0 0 0 4px hsl(var(--border) / 0.4), var(--shadow-2)" }}
+                />
+              </div>
+            ) : (
+              <div className="icon-box-erp w-20 h-20 rounded-2xl shrink-0">
+                <User size={30} className="text-primary" />
               </div>
             )}
+            <div className="flex-1 space-y-3 min-w-0">
+              <div>
+                <h2 className="text-2xl font-bold gradient-text-portfolio">{profile.name}</h2>
+                {profile.title && (
+                  <p className="text-sm text-primary font-medium mt-0.5">{profile.title}</p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                {profile.email && (
+                  <span className="flex items-center gap-1.5"><Mail size={12} /> {profile.email}</span>
+                )}
+                {profile.phone && (
+                  <span className="flex items-center gap-1.5"><Phone size={12} /> {profile.phone}</span>
+                )}
+                {profile.location && (
+                  <span className="flex items-center gap-1.5"><MapPin size={12} /> {profile.location}</span>
+                )}
+              </div>
+              {profile.bio && (
+                <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+              )}
+              {profile.links?.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {profile.links.map((l, i) => (
+                    <a
+                      key={i}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                    >
+                      <ExternalLink size={11} /> {l.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Skills */}
       {profile?.skills?.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Zap size={18} className="text-primary" /> Compétences techniques
+        <div className="space-y-5">
+          <h2 className="text-lg font-bold flex items-center gap-2 section-title">
+            <Zap size={16} className="text-primary shrink-0" /> Compétences
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {profile.skills.map((cat) => (
-              <div key={cat.category} className="space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {cat.category}
-                </h3>
-                {cat.items.map((skill) => (
-                  <div key={skill.name} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">{skill.name}</span>
-                      <span className="text-muted-foreground text-xs">{skill.level}%</span>
+              <div key={cat.category} className="card-surface p-5 space-y-4">
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-primary">{cat.category}</h3>
+                <div className="space-y-3">
+                  {cat.items.map((skill) => (
+                    <div key={skill.name}>
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="font-medium text-foreground/90">{skill.name}</span>
+                        <span className="text-muted-foreground">{skill.level}%</span>
+                      </div>
+                      <div className="skill-progress-bg">
+                        <div className="skill-progress-fill" style={{ width: `${skill.level}%` }} />
+                      </div>
                     </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${skill.level}%` }} />
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -147,58 +172,75 @@ export function CVPage() {
       )}
 
       {/* Formations */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <GraduationCap size={18} className="text-primary" /> Formations & Certifications
+      <div className="space-y-5">
+        <h2 className="text-lg font-bold flex items-center gap-2 section-title">
+          <GraduationCap size={16} className="text-primary shrink-0" /> Formations & Certifications
         </h2>
 
         {formations.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
-            {isEditor ? (
-              <p>Aucune formation. Cliquez sur "Ajouter une formation" pour commencer.</p>
-            ) : (
-              <p>Aucune formation disponible.</p>
-            )}
+          <div className="card-surface empty-state">
+            <div className="icon-box-erp w-14 h-14">
+              <GraduationCap size={22} className="text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground/90">Aucune formation</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isEditor ? 'Cliquez sur "Formation" pour ajouter.' : "Aucune formation disponible."}
+              </p>
+            </div>
           </div>
         ) : categories.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {categories.map((cat) => (
               <div key={cat} className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-1">
-                  {cat}
-                </h3>
-                {formations.filter((f) => f.category === cat).map((f) => (
-                  <FormationCard key={f.id} formation={f} isEditor={isEditor}
-                    onEdit={() => setFormationDialog({ open: true, editing: f })}
-                    onDelete={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(f.id); }}
-                  />
-                ))}
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-1">{cat}</h3>
+                <div className="timeline-erp">
+                  {formations.filter((f) => f.category === cat).map((f) => (
+                    <div key={f.id} className="timeline-erp-item">
+                      <FormationCard
+                        formation={f}
+                        isEditor={isEditor}
+                        onEdit={() => setFormationDialog({ open: true, editing: f })}
+                        onDelete={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(f.id); }}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
-            {formations.filter((f) => !f.category).map((f) => (
-              <FormationCard key={f.id} formation={f} isEditor={isEditor}
-                onEdit={() => setFormationDialog({ open: true, editing: f })}
-                onDelete={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(f.id); }}
-              />
-            ))}
+            {formations.filter((f) => !f.category).length > 0 && (
+              <div className="timeline-erp">
+                {formations.filter((f) => !f.category).map((f) => (
+                  <div key={f.id} className="timeline-erp-item">
+                    <FormationCard
+                      formation={f}
+                      isEditor={isEditor}
+                      onEdit={() => setFormationDialog({ open: true, editing: f })}
+                      onDelete={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(f.id); }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="timeline-erp">
             {formations.map((f) => (
-              <FormationCard key={f.id} formation={f} isEditor={isEditor}
-                onEdit={() => setFormationDialog({ open: true, editing: f })}
-                onDelete={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(f.id); }}
-              />
+              <div key={f.id} className="timeline-erp-item">
+                <FormationCard
+                  formation={f}
+                  isEditor={isEditor}
+                  onEdit={() => setFormationDialog({ open: true, editing: f })}
+                  onDelete={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(f.id); }}
+                />
+              </div>
             ))}
           </div>
         )}
       </div>
 
       {profileDialog && (
-        <CVProfileDialog
-          profile={profile}
-          onClose={() => setProfileDialog(false)}
-        />
+        <CVProfileDialog profile={profile} onClose={() => setProfileDialog(false)} />
       )}
 
       <FormationDialog
@@ -210,60 +252,61 @@ export function CVPage() {
   );
 }
 
-// ─── Formation card ───────────────────────────────────────────────────────────
-
 function FormationCard({ formation, isEditor, onEdit, onDelete }) {
   const dateRange = formatDateRange(formation.startDate, formation.endDate, formation.current);
 
   return (
-    <Card className="group hover:border-primary/40 transition-colors">
-      <CardContent className="pt-4 pb-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0 space-y-1">
-            <div className="flex items-start gap-2 flex-wrap">
-              <span className="font-semibold">{formation.title}</span>
-              {formation.current && (
-                <Badge variant="outline" className="text-xs text-primary border-primary">En cours</Badge>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{formation.institution}</span>
-              {formation.location && (
-                <span className="flex items-center gap-1"><MapPin size={12} /> {formation.location}</span>
-              )}
-              {dateRange && (
-                <span className="flex items-center gap-1"><Calendar size={12} /> {dateRange}</span>
-              )}
-            </div>
-            {formation.description && (
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{formation.description}</p>
+    <div className="card-surface p-5 group hover:border-primary/20 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-foreground/90">{formation.title}</span>
+            {formation.current && (
+              <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
+                En cours
+              </span>
             )}
           </div>
-          {isEditor && (
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
-                <Pencil size={12} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete}>
-                <Trash2 size={12} />
-              </Button>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground/70">{formation.institution}</span>
+            {formation.location && (
+              <span className="flex items-center gap-1"><MapPin size={11} /> {formation.location}</span>
+            )}
+            {dateRange && (
+              <span className="flex items-center gap-1"><Calendar size={11} /> {dateRange}</span>
+            )}
+          </div>
+          {formation.description && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{formation.description}</p>
           )}
         </div>
-      </CardContent>
-    </Card>
+        {isEditor && (
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <button
+              className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-primary transition-colors"
+              onClick={onEdit}
+            >
+              <Pencil size={12} />
+            </button>
+            <button
+              className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              onClick={onDelete}
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
-
-// ─── Formation dialog ─────────────────────────────────────────────────────────
 
 function FormationDialog({ open, editing, onOpenChange }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [form, setForm] = useState({
     title: "", institution: "", location: "", startDate: "",
-    endDate: "", current: false, description: "", category: "",
-    visibility: "viewer",
+    endDate: "", current: false, description: "", category: "", visibility: "viewer",
   });
 
   useEffect(() => {
@@ -285,9 +328,7 @@ function FormationDialog({ open, editing, onOpenChange }) {
   }, [editing]);
 
   const mutation = useMutation({
-    mutationFn: (data) => editing
-      ? cvApi.updateFormation(editing.id, data)
-      : cvApi.createFormation(data),
+    mutationFn: (data) => editing ? cvApi.updateFormation(editing.id, data) : cvApi.createFormation(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cv"] });
       toast({ title: editing ? "Formation mise à jour" : "Formation ajoutée" });
@@ -315,18 +356,15 @@ function FormationDialog({ open, editing, onOpenChange }) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5 col-span-2">
               <Label className="text-xs">Titre / Diplôme *</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required
-                placeholder="Ex : Master Informatique, RNCP niveau 6…" />
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="Ex : Master Informatique…" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Établissement *</Label>
-              <Input value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} required
-                placeholder="École, université…" />
+              <Input value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} required placeholder="École, université…" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Lieu</Label>
-              <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-                placeholder="Paris, France" />
+              <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Paris, France" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Date de début</Label>
@@ -334,27 +372,17 @@ function FormationDialog({ open, editing, onOpenChange }) {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Date de fin</Label>
-              <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                disabled={form.current} />
+              <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} disabled={form.current} />
             </div>
           </div>
-
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="current"
-              checked={form.current}
-              onChange={(e) => setForm({ ...form, current: e.target.checked, endDate: "" })}
-              className="w-4 h-4 rounded border-border"
-            />
+            <input type="checkbox" id="current" checked={form.current} onChange={(e) => setForm({ ...form, current: e.target.checked, endDate: "" })} className="w-4 h-4 rounded border-border" />
             <Label htmlFor="current" className="text-sm cursor-pointer">En cours</Label>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Catégorie</Label>
-              <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                placeholder="Diplôme, Certification…" />
+              <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Diplôme, Certification…" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Visibilité</Label>
@@ -367,13 +395,10 @@ function FormationDialog({ open, editing, onOpenChange }) {
               </Select>
             </div>
           </div>
-
           <div className="space-y-1.5">
             <Label className="text-xs">Description</Label>
-            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3} placeholder="Options, spécialité, mention…" />
+            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Options, spécialité, mention…" />
           </div>
-
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
             <Button type="submit" disabled={mutation.isPending}>
@@ -386,8 +411,6 @@ function FormationDialog({ open, editing, onOpenChange }) {
     </Dialog>
   );
 }
-
-// ─── CV Profile dialog ────────────────────────────────────────────────────────
 
 function CVProfileDialog({ profile, onClose }) {
   const qc = useQueryClient();
@@ -446,12 +469,7 @@ function CVProfileDialog({ profile, onClose }) {
             <div className="space-y-1.5"><Label>Localisation</Label><Input value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} placeholder="Paris, France" /></div>
             <div className="space-y-1.5"><Label>URL avatar</Label><Input value={form.avatar} onChange={(e) => setForm((f) => ({ ...f, avatar: e.target.value }))} placeholder="https://..." /></div>
           </div>
-
-          <div className="space-y-1.5">
-            <Label>Bio</Label>
-            <Textarea value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} />
-          </div>
-
+          <div className="space-y-1.5"><Label>Bio</Label><Textarea value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} /></div>
           <div className="space-y-1.5">
             <Label>Visibilité</Label>
             <Select value={form.visibility} onValueChange={(v) => setForm((f) => ({ ...f, visibility: v }))}>
@@ -462,7 +480,6 @@ function CVProfileDialog({ profile, onClose }) {
               </SelectContent>
             </Select>
           </div>
-
           <div className="space-y-2">
             <div className="flex items-center justify-between"><Label>Liens</Label><Button type="button" variant="outline" size="sm" onClick={addLink}><Plus size={13} /> Ajouter</Button></div>
             {form.links.map((l, i) => (
@@ -473,11 +490,10 @@ function CVProfileDialog({ profile, onClose }) {
               </div>
             ))}
           </div>
-
           <div className="space-y-3">
             <div className="flex items-center justify-between"><Label>Compétences</Label><Button type="button" variant="outline" size="sm" onClick={addCat}><Plus size={13} /> Catégorie</Button></div>
             {form.skills.map((cat, ci) => (
-              <div key={ci} className="border border-border rounded-lg p-3 space-y-2">
+              <div key={ci} className="border border-border/50 rounded-xl p-3 space-y-2 bg-muted/20">
                 <div className="flex gap-2"><Input value={cat.category} onChange={(e) => updateCat(ci, e.target.value)} placeholder="Ex: Frontend" className="flex-1" /><Button type="button" variant="ghost" size="icon" onClick={() => removeCat(ci)}><X size={14} /></Button></div>
                 {cat.items.map((sk, si) => (
                   <div key={si} className="flex items-center gap-2 pl-2">
@@ -491,10 +507,9 @@ function CVProfileDialog({ profile, onClose }) {
               </div>
             ))}
           </div>
-
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" disabled={mutation.isPending}>{mutation.isPending && <Loader2 size={14} className="animate-spin" />}Sauvegarder</Button>
+            <Button type="submit" disabled={mutation.isPending}>{mutation.isPending && <Loader2 size={14} className="animate-spin" />} Sauvegarder</Button>
           </DialogFooter>
         </form>
       </DialogContent>
