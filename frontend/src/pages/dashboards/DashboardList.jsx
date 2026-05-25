@@ -18,7 +18,6 @@ export function DashboardList() {
   const { toast } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  useScrollReveal();
 
   const { data: dashboards = [], isLoading } = useQuery({
     queryKey: ["dashboards"],
@@ -33,6 +32,8 @@ export function DashboardList() {
     },
     onError: (e) => toast({ title: "Erreur", description: e.response?.data?.error, variant: "destructive" }),
   });
+
+  useScrollReveal(dashboards.length);
 
   if (isLoading) {
     return (
